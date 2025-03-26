@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install black flake8 pytest coverage
+
+      - name: Lint (flake8)
+        run: flake8 .
+
+      - name: Formatting Check (black)
+        run: black --check .
+
+      - name: Run tests with coverage
+        run: |
+          coverage run -m pytest
+          coverage report -m
