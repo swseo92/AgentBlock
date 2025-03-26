@@ -1,11 +1,11 @@
 import pytest
-from docmesh.embedding.EmbeddingModelFactory import EmbeddingModelFactory
+from agentblock.embedding.EmbeddingModelFactory import EmbeddingModelFactory
 from langchain_openai import OpenAIEmbeddings
-from docmesh.tools.load_config import load_config
+from agentblock.tools.load_config import load_config
 
 from dotenv import load_dotenv
 
-path_config = "../../test_config.yaml"
+path_config = "../test_config.yaml"
 
 
 def test_create_openai_embedding_model():

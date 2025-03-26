@@ -1,0 +1,29 @@
+# config.yaml
+tiktoken_encoding: "gpt2"
+
+llm:
+  provider: "openai"
+  model: "gpt-3.5-turbo"
+  temperature: 0.0
+
+vector_store:
+  provider: "faiss"
+
+embedding_model:
+  provider: "openai"
+  model: "text-embedding-ada-002"
+
+evaluation:
+  dataset:
+    personas:
+      - name: "Junior Developer"
+        role_description: "A developer who has just started their career in software development. They have basic programming knowledge and are actively learning how to collaborate on small tasks or bug fixes."
+
+      - name: "Intermediate Developer"
+        role_description: "A developer with around 2–5 years of professional experience. They can independently handle most tasks using common frameworks and libraries, have a reasonable grasp of code quality and design patterns, and can mentor junior developers."
+
+      - name: "Senior Developer"
+        role_description: "A seasoned developer with 5 or more years of hands-on experience. They are proficient in large-scale system design, performance optimization, and can effectively lead teams or mentor other developers."
+
+      - name: "University Student"
+        role_description: "A student majoring in computer science or a related field, learning fundamental programming skills and theoretical knowledge. They may lack practical experience but have enthusiasm for expanding their understanding through projects, assignments, or internships."

@@ -1,11 +1,11 @@
 import pytest
-from docmesh.llm.LLMFactory import LLMFactory
+from agentblock.llm.LLMFactory import LLMFactory
 from langchain_openai import ChatOpenAI
-from docmesh.tools.load_config import load_config
+from agentblock.tools.load_config import load_config
 
 from dotenv import load_dotenv
 
-path_config = "../../test_config.yaml"
+path_config = "../test_config.yaml"
 
 
 def test_llm_factory_langchain():

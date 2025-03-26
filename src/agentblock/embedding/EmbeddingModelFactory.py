@@ -2,7 +2,6 @@ from langchain_core.embeddings.embeddings import Embeddings
 from langchain_openai import OpenAIEmbeddings
 
 
-# --- Embedding Model Factory ---
 class EmbeddingModelFactory:
     def __init__(self):
         pass
