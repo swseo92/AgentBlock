@@ -1,0 +1,24 @@
+name: legal_assistant            # 노드 이름 (그래프 내에서 고유)
+type: llm                        # 노드 타입
+provider: openai                 # LLM 제공자 ("openai", "anthropic", "mistral" 등)
+
+args: []                           # LLMFactory에 넘길 위치 인자 (일반적으로는 빈 배열)
+
+kwargs:                          # LLM 설정값
+  model_name: gpt-4
+  temperature: 0.3
+  max_tokens: 512
+
+prompt_template: |              # 프롬프트 템플릿 (Jinja2 또는 LangChain 포맷 사용 가능)
+  너는 냉철한 법률 전문가야. 사용자에게 정확하고 간결한 법률 해석을 제공해.
+
+  사용자 질문: {query}
+  답변:
+
+input_keys: ["query"]           # state에서 입력으로 사용할 키 목록
+output_key: answer              # 결과를 저장할 state 키
+
+# (선택) 향후 확장을 위한 필드들
+# system_prompt_file: prompts/system_lawyer.txt
+# prompt_template_file: prompts/legal_prompt.j2
+# persona: "너는 냉철한 국제변호사다."
