@@ -1,110 +1,157 @@
-import pytest
-from unittest.mock import patch, MagicMock
-from langchain_core.embeddings.embeddings import Embeddings
-from langchain_community.vectorstores import FAISS
-from agentblock.vector_store.vector_store_factory import VectorStoreFactory
 import os
+import pytest
+import tempfile
+import yaml
 
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(script_path)
-os.chdir(script_dir)
+from agentblock.vector_store.vector_store_factory import VectorStoreFactory
+from langchain_core.embeddings.embeddings import Embeddings
+from langchain_openai import OpenAIEmbeddings
+
+from langchain_community.vectorstores import FAISS
+
+from dotenv import load_dotenv
 
 
-class MockEmbeddings(Embeddings):
-    """
-    langchain_core.embeddings.embeddings.Embeddings를 상속받는 Mock.
-    embed_query 호출 시 고정된 벡터(길이 5) 반환.
-    """
-
-    def embed_query(self, text: str):
-        return [float(i) for i in range(5)]
-
-    def embed_documents(self, texts: list[str]):
-        return [[float(i) for i in range(5)] for _ in texts]
+load_dotenv()
 
 
 @pytest.fixture
-def mock_embedding_model():
-    return MockEmbeddings()
+def embedding_model() -> Embeddings:
+    return OpenAIEmbeddings(model="text-embedding-ada-002")
 
 
-def test_create_vector_store_faiss_no_embedding():
+def test_create_vector_store_faiss(embedding_model):
     """
-    provider='faiss'인데 embedding_model이 None이면 예외 발생해야 함.
+    1) create_vector_store()가 'faiss' provider일 때
+       정상적으로 FAISS 스토어를 생성하는지 테스트.
     """
     factory = VectorStoreFactory()
-    with pytest.raises(ValueError, match="embedding_model must be provided"):
+    vector_store = factory.create_vector_store(
+        provider="faiss", embedding_model=embedding_model
+    )
+
+    # 반환된 객체가 FAISS 인스턴스인지 확인
+    assert isinstance(vector_store, FAISS), "Expected a FAISS vector store instance"
+
+    # 검색 시 아무 문서도 없으므로 결과 0개
+    results = vector_store.similarity_search("test", k=1)
+    assert len(results) == 0, "Empty store should have 0 results"
+
+
+def test_create_vector_store_no_embedding():
+    """
+    2) embedding_model이 None인 경우, ValueError가 발생해야 함.
+    """
+    factory = VectorStoreFactory()
+    with pytest.raises(ValueError) as exc_info:
         factory.create_vector_store(provider="faiss", embedding_model=None)
+    assert "embedding_model must be provided" in str(exc_info.value)
 
 
-def test_create_vector_store_unsupported_provider(mock_embedding_model):
+def test_create_vector_store_unsupported_provider(embedding_model):
     """
-    지원하지 않는 provider를 넘기면 예외 발생해야 함.
+    3) 지원하지 않는 provider를 넣으면 예외 발생.
     """
     factory = VectorStoreFactory()
-    with pytest.raises(ValueError, match="Unsupported vector store provider"):
+    with pytest.raises(ValueError) as exc_info:
         factory.create_vector_store(
-            provider="annoy2", embedding_model=mock_embedding_model
+            provider="pinecone", embedding_model=embedding_model
+        )
+    assert "Unsupported vector store provider" in str(exc_info.value)
+
+
+def test_create_from_yaml_faiss(embedding_model):
+    """
+    4) create_from_yaml()를 통해 파라미터를 yaml 파일로부터 읽어오는지 테스트.
+       - provider = "faiss"
+       - config:
+         path: None  (새 인덱스 생성)
+       실제로 문서를 추가/검색이 되는지 간단히 확인.
+    """
+    factory = VectorStoreFactory()
+
+    test_config = {
+        "vector_store": {
+            "provider": "faiss",
+            "config": {
+                # path=None이면 새 인덱스 생성
+                "path": None
+                # 다른 파라미터 (top_k 등)을 추가해도 됩니다
+            },
+        }
+    }
+
+    with tempfile.NamedTemporaryFile(
+        delete=False, mode="w", suffix=".yaml"
+    ) as tmp_file:
+        yaml.dump(test_config, tmp_file)
+        tmp_yaml_path = tmp_file.name
+
+    try:
+        # YAML에서 설정 읽어옴
+        vector_store = factory.create_from_yaml(
+            yaml_path=tmp_yaml_path, embedding_model=embedding_model
         )
 
+        # 여기도 FAISS 인스턴스인지 확인
+        assert isinstance(vector_store, FAISS)
 
-@patch("agentblock.vector_store.vector_store_factory.FAISS.load_local")
-def test_create_vector_store_faiss_with_path(
-    mock_load_local, mock_embedding_model, tmp_path
-):
+        # 문서 추가 -> 검색 테스트
+        docs = ["Hello VectorStore", "LangChain test doc"]
+        vector_store.add_texts(docs)
+
+        results = vector_store.similarity_search("Hello", k=2)
+        assert len(results) > 0, "Expected at least one result for 'Hello'"
+        contents = [r.page_content for r in results]
+        assert "Hello VectorStore" in contents, "Expected the doc 'Hello VectorStore'"
+
+    finally:
+        # 임시 파일 정리
+        if os.path.exists(tmp_yaml_path):
+            os.remove(tmp_yaml_path)
+
+
+def test_create_from_yaml_no_embedding():
     """
-    path가 주어졌을 때, load_local이 호출되어 기존 FAISS 인덱스를 로드하는지 확인.
-    """
-    factory = VectorStoreFactory()
-    test_path = str(tmp_path / "faiss_index")
-    # mock_load_local이 반환할 임의의 FAISS 인스턴스 준비
-    mock_faiss_instance = MagicMock(spec=FAISS)
-    mock_load_local.return_value = mock_faiss_instance
-
-    vs = factory.create_vector_store(
-        provider="faiss", embedding_model=mock_embedding_model, path=test_path
-    )
-
-    # load_local이 호출되었는지, 파라미터가 맞는지 체크
-    mock_load_local.assert_called_once_with(
-        test_path, mock_embedding_model, allow_dangerous_deserialization=True
-    )
-    assert vs == mock_faiss_instance, "리턴된 VectorStore는 mock_faiss_instance여야 함"
-
-
-@patch("agentblock.vector_store.vector_store_factory.FAISS")
-def test_create_vector_store_faiss_no_path(mock_faiss_cls, mock_embedding_model):
-    """
-    path=None이면 새 FAISS 인스턴스를 생성해야 함.
-    IndexFlatL2와 InMemoryDocstore가 사용되는지 확인.
+    5) create_from_yaml 시 embedding_model=None 이면 ValueError.
     """
     factory = VectorStoreFactory()
+    test_config = {"vector_store": {"provider": "faiss", "config": {"path": None}}}
 
-    # mock_faiss_cls(FaissClassMock) 인스턴스 준비
-    mock_faiss_instance = MagicMock(spec=FAISS)
-    mock_faiss_cls.return_value = mock_faiss_instance
+    with tempfile.NamedTemporaryFile(
+        delete=False, mode="w", suffix=".yaml"
+    ) as tmp_file:
+        yaml.dump(test_config, tmp_file)
+        tmp_yaml_path = tmp_file.name
 
-    vs = factory.create_vector_store(
-        provider="faiss", embedding_model=mock_embedding_model, path=None
-    )
+    try:
+        with pytest.raises(ValueError) as exc_info:
+            factory.create_from_yaml(yaml_path=tmp_yaml_path, embedding_model=None)
+        assert len(str(exc_info.value)) > 0
+    finally:
+        if os.path.exists(tmp_yaml_path):
+            os.remove(tmp_yaml_path)
 
-    # load_local은 호출되지 않음
-    mock_faiss_cls.load_local.assert_not_called()
-    # 대신 FAISS(...) 생성자가 호출되었을 것
-    assert vs == mock_faiss_instance
 
-
-def test_create_vector_store_faiss_result_dimensions(mock_embedding_model):
+def test_create_from_yaml_unsupported_provider(embedding_model):
     """
-    embed_query("hello") => 벡터 차원 = 5
-    -> IndexFlatL2(5)로 생성되는지 확인하기 위해,
-    직접 creat_faiss_vector_store 호출 후 내부 index.d를 확인.
+    6) YAML에 미지원 provider가 있으면 예외 발생.
     """
     factory = VectorStoreFactory()
-    # factory.create_vector_store -> creat_faiss_vector_store -> FAISS(...)
-    vs = factory.create_vector_store(
-        provider="faiss", embedding_model=mock_embedding_model
-    )
-    # vs.index가 실제 faiss IndexFlatL2 인스턴스일 것이므로, 차원(d) 확인
-    index = vs.index
-    assert index.d == 5, f"Index dimension must be 5, got {index.d}"
+    test_config = {"vector_store": {"provider": "unknown", "config": {}}}
+
+    with tempfile.NamedTemporaryFile(
+        delete=False, mode="w", suffix=".yaml"
+    ) as tmp_file:
+        yaml.dump(test_config, tmp_file)
+        tmp_yaml_path = tmp_file.name
+
+    try:
+        with pytest.raises(ValueError) as exc_info:
+            factory.create_from_yaml(
+                yaml_path=tmp_yaml_path, embedding_model=embedding_model
+            )
+        assert "Unsupported vector store provider" in str(exc_info.value)
+    finally:
+        if os.path.exists(tmp_yaml_path):
+            os.remove(tmp_yaml_path)

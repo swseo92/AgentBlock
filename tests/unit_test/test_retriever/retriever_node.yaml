@@ -1,0 +1,10 @@
+nodes:
+  - name: my_retriever
+    type: from_yaml
+    from_file: "test_yaml/retriever.yaml"
+
+edges:
+  - from: START
+    to: my_retriever
+  - from: my_retriever
+    to: END

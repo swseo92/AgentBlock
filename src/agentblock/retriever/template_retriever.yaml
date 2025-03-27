@@ -1,10 +1,21 @@
-name: law_retriever              # 노드 이름 (그래프 내에서 고유해야 함)
-type: retriever                  # 노드 타입
+nodes:
+  - name: my_retriever
+    type: retriever
+    embedding_path: "elements/embedding.yaml"
+    vector_store_path: "elements/vector_store.yaml"
+    retriever_config:
+      search_method: invoke
+      search_type: "similarity"
+      search_kwargs:
+        k: 5
+        # e.g. filter: {"category": "finance"}
+    input_keys:
+      - query
+    output_key: retrieved_docs
 
-retriever_name: faiss_law        # 미리 등록된 retriever_map의 키값
-input_key: query                 # state에서 쿼리를 받을 키
-output_key: docs                 # 검색 결과를 저장할 키
+edges:
+  - from: START
+    to: invalid_node
+  - from: invalid_node
+    to: END
 
-kwargs:                          # 리트리버 실행 시 옵션
-  top_k: 3
-  filter: recent                 # (옵션) 필터 조건 (예: 날짜, 태그 등)

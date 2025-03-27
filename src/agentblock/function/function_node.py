@@ -4,6 +4,7 @@ import importlib.util
 from typing import Any, Dict, List, Union
 
 from agentblock.base import BaseNode
+from agentblock.tools.load_config import get_abspath
 
 
 def load_function_from_path(function_path: str, base_dir: str | None = None):
@@ -18,14 +19,8 @@ def load_function_from_path(function_path: str, base_dir: str | None = None):
         raise ValueError(f"Invalid function_path '{function_path}'. Must be 'xxx:func'")
     mod_part, func_name = function_path.rsplit(":", 1)
 
-    # base_dir가 있다면 합쳐주기 (예: yaml_dir)
-    if base_dir:
-        mod_part = os.path.join(base_dir, mod_part)
-
-    # 2) convert dotted path -> filesystem path, then add ".py"
-    #    예: "../test_funcs.test_funcs_for_validation"
-    #      -> "../test_funcs/test_funcs_for_validation.py"
-    mod_part_fs = os.path.normpath(mod_part).replace(".", os.sep) + ".py"
+    mod_part = get_abspath(mod_part, base_dir).replace(".", "/")
+    mod_part_fs = mod_part + ".py"
     mod_file = os.path.abspath(mod_part_fs)
 
     if not os.path.isfile(mod_file):
