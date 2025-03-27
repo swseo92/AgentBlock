@@ -3,10 +3,14 @@ import yaml
 from agentblock.llm.llm_node import LLMNode
 
 from dotenv import load_dotenv
+import os
 
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+os.chdir(script_dir)
 
-path_config = "./test_llm.yaml"
-path_config2 = "./test_llm2.yaml"
+path_config = f"{script_dir}/test_llm.yaml"
+path_config2 = f"{script_dir}/test_llm2.yaml"
 
 
 def test_from_yaml():
@@ -21,7 +25,7 @@ def test_from_yaml():
 
     assert node.name == "legal_assistant"
     assert node.provider == "openai"
-    assert node.kwargs["model_name"] == "gpt-4"
+    assert node.kwargs["model_name"] == "gpt-4o-mini"
     assert "query" in node.input_keys
     assert node.output_key == "answer"
 
@@ -95,7 +99,7 @@ def test_graph_compile():
     result = graph.invoke({"query": "hi"})
 
     assert result["query"] == "hi"
-    assert result["answer"] == 1
+    assert len(result["answer"]) == 1
 
 
 def test_multi_node():

@@ -1,9 +1,15 @@
 import pytest
-from agentblock.llm.LLMFactory import LLMFactory
+from agentblock.llm.llm_factory import LLMFactory
 from langchain_openai import ChatOpenAI
 from agentblock.tools.load_config import load_config
 
 from dotenv import load_dotenv
+import os
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+os.chdir(script_dir)
+
 
 path_config = "../test_config.yaml"
 
@@ -19,5 +25,5 @@ def test_llm_factory_langchain():
 def test_llm_factory_invalid_provider():
     with pytest.raises(ValueError):
         _ = LLMFactory.create_llm(
-            provider="invalid", model="gpt-3.5-turbo", temperature=0.0
+            provider="invalid", model="gpt-4o-mini", temperature=0.0
         )

@@ -1,11 +1,11 @@
 nodes:
   - name: llm_legal
     type: from_yaml
-    from_file: nodes/llm_legal.yaml
+    from_file: ../nodes/llm_legal.yaml
 
   - name: summarizer
     type: from_yaml
-    from_file: nodes/summarizer.yaml
+    from_file: ../nodes/summarizer.yaml
 
 edges:
   - from: START

@@ -5,7 +5,7 @@ provider: openai                 # LLM 제공자 ("openai", "anthropic", "mistra
 args: []                           # LLMFactory에 넘길 위치 인자 (일반적으로는 빈 배열)
 
 kwargs:                          # LLM 설정값
-  model_name: gpt-4
+  model_name: gpt-4o-mini
   temperature: 0.3
   max_tokens: 512
 

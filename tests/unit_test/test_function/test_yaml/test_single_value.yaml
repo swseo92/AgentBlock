@@ -1,0 +1,14 @@
+nodes:
+  - name: single_val_node
+    type: function
+    function_path: ../test_funcs/single_value:single_value_func
+    input_keys:
+      - x
+    params:
+      scale: 2
+    output_key: value  # 단일 키
+edges:
+  - from: START
+    to: single_val_node
+  - from: single_val_node
+    to: END

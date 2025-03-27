@@ -1,0 +1,8 @@
+nodes:
+  # 노드에 'name'이 없음 => 에러
+  - type: function
+    function_path: mypackage.missing:some_func
+
+edges:
+  - from: START
+    to: function_node

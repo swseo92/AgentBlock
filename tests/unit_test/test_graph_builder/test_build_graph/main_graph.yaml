@@ -5,8 +5,9 @@ nodes:
 
   - name: merger
     type: function
-    function: merge_final
-    input_keys: ["law_summary"]
+    function_path: functions.merge:merge_final
+    input_keys:
+      - law_summary
     output_key: final_answer
 
 edges:

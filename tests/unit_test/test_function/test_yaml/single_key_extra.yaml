@@ -1,0 +1,12 @@
+nodes:
+  - name: single_val_extra_node
+    type: function
+    function_path: ../test_funcs/test_funcs_for_validation:single_value_extra_func
+    input_keys:
+      - x
+    output_key: result
+edges:
+  - from: START
+    to: single_val_extra_node
+  - from: single_val_extra_node
+    to: END

@@ -1,17 +1,26 @@
 import pytest
-from agentblock.embedding.EmbeddingModelFactory import EmbeddingModelFactory
+from agentblock.embedding.embedding_factory import EmbeddingModelFactory
 from langchain_openai import OpenAIEmbeddings
 from agentblock.tools.load_config import load_config
 
 from dotenv import load_dotenv
+import os
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+os.chdir(script_dir)
 
 path_config = "../test_config.yaml"
+load_dotenv()
 
 
 def test_create_openai_embedding_model():
     load_dotenv()
-    config = load_config(path_config)
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
+    config = load_config(path_config)
     embeddings = EmbeddingModelFactory.create_embedding_model(
         **config["embedding_model"]
     )
@@ -21,6 +30,10 @@ def test_create_openai_embedding_model():
 
 def test_embed_query_openai_embedding_model():
     load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY not found in environment variables.")
+
     config = load_config(path_config)
 
     embeddings = EmbeddingModelFactory.create_embedding_model(

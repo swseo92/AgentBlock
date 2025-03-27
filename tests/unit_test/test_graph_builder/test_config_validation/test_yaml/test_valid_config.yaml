@@ -1,0 +1,12 @@
+nodes:
+  - name: valid_node
+    type: function
+    function_path: mypackage.some_module:some_func
+    input_keys:
+      - my_input
+    output_key: a
+edges:
+  - from: START
+    to: valid_node
+  - from: valid_node
+    to: END

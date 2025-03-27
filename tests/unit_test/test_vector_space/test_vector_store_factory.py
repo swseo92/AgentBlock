@@ -2,7 +2,12 @@ import pytest
 from unittest.mock import patch, MagicMock
 from langchain_core.embeddings.embeddings import Embeddings
 from langchain_community.vectorstores import FAISS
-from agentblock.vector_store.VectorStoreFactory import VectorStoreFactory
+from agentblock.vector_store.vector_store_factory import VectorStoreFactory
+import os
+
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(script_path)
+os.chdir(script_dir)
 
 
 class MockEmbeddings(Embeddings):
@@ -43,7 +48,7 @@ def test_create_vector_store_unsupported_provider(mock_embedding_model):
         )
 
 
-@patch("agentblock.vector_store.VectorStoreFactory.FAISS.load_local")
+@patch("agentblock.vector_store.vector_store_factory.FAISS.load_local")
 def test_create_vector_store_faiss_with_path(
     mock_load_local, mock_embedding_model, tmp_path
 ):
@@ -67,7 +72,7 @@ def test_create_vector_store_faiss_with_path(
     assert vs == mock_faiss_instance, "리턴된 VectorStore는 mock_faiss_instance여야 함"
 
 
-@patch("agentblock.vector_store.VectorStoreFactory.FAISS")
+@patch("agentblock.vector_store.vector_store_factory.FAISS")
 def test_create_vector_store_faiss_no_path(mock_faiss_cls, mock_embedding_model):
     """
     path=None이면 새 FAISS 인스턴스를 생성해야 함.

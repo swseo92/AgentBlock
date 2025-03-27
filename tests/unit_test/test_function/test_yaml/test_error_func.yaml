@@ -1,0 +1,12 @@
+nodes:
+  - name: err_node
+    type: function
+    function_path: ../test_funcs/error_func:error_func
+    input_keys:
+      - data
+    output_key: error_value
+edges:
+  - from: START
+    to: err_node
+  - from: err_node
+    to: END

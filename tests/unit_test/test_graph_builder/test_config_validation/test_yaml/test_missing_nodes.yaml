@@ -1,0 +1,4 @@
+# 'nodes' 필드 자체가 없음 => validate_config에서 에러
+edges:
+  - from: START
+    to: something

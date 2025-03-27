@@ -1,0 +1,22 @@
+nodes:
+  - name: node1
+    type: function
+    function_path: mypackage.ok:some_func
+    input_keys:
+      - x
+    output_key: y
+
+  - name: node2
+    type: function
+    function_path: mypackage.ok:some_func
+    input_keys:
+      - x
+    output_key: y
+
+edges:
+  - from: START
+    to: node1
+  - from: node1
+    to: END
+  - from: node1
+    to: node2
