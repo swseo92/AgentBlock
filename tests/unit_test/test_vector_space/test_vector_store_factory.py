@@ -5,7 +5,7 @@ import yaml
 
 from agentblock.vector_store.vector_store_factory import VectorStoreFactory
 from langchain_core.embeddings.embeddings import Embeddings
-from langchain_openai import OpenAIEmbeddings
+from agentblock.embedding.dummy_embedding import DummyEmbedding
 
 from langchain_community.vectorstores import FAISS
 
@@ -17,7 +17,7 @@ load_dotenv()
 
 @pytest.fixture
 def embedding_model() -> Embeddings:
-    return OpenAIEmbeddings(model="text-embedding-ada-002")
+    return DummyEmbedding()
 
 
 def test_create_vector_store_faiss(embedding_model):

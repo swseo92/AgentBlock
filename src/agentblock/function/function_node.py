@@ -1,10 +1,11 @@
 import os
+import yaml
 import importlib
 import importlib.util
 from typing import Any, Dict, List, Union
 
 from agentblock.base import BaseNode
-from agentblock.tools.load_config import get_abspath
+from agentblock.tools.load_config import get_abspath, get_parent_dir_abspath
 
 
 def load_function_from_path(function_path: str, base_dir: str | None = None):
@@ -61,8 +62,8 @@ class FunctionNode(BaseNode):
         function_path: str,
         input_keys: List[str],
         output_key: Union[str, List[str]],
+        base_dir: str,
         params: Dict[str, Any] = None,
-        base_dir: str = None,  # (옵션) GraphBuilder에서 yaml_dir을 넘길 수 있음
     ):
         super().__init__(name)
         self.function_path = function_path
@@ -95,12 +96,14 @@ class FunctionNode(BaseNode):
                 f"Missing 'output_key' in FunctionNode config: {config.get('name')}"
             )
 
+        assert base_dir is not None
+
         return FunctionNode(
             name=config["name"],
-            function_path=config["function_path"],
             input_keys=config.get("input_keys", []),
             output_key=config["output_key"],
-            params=config.get("params", {}),
+            function_path=config["config"]["function_path"],
+            params=config["config"].get("params", {}),
             base_dir=base_dir,
         )
 
@@ -148,3 +151,27 @@ class FunctionNode(BaseNode):
                 f"Function '{self.function_path}' returned keys {actual_keys}, "
                 f"but output_key expects exactly {expected_keys}."
             )
+
+    @staticmethod
+    def from_yaml_file(yaml_path: str):
+        """
+        YAML 파일 경로를 입력받아 파일을 로드(safe_load) 한 뒤,
+        from_yaml 메서드를 이용해 Embeddings 인스턴스를 생성한다.
+        """
+        with open(yaml_path, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f)["nodes"][0]
+
+        base_dir = get_parent_dir_abspath(yaml_path)
+        return FunctionNode.from_yaml(config, base_dir)
+
+
+if __name__ == "__main__":
+    from test_functions import test_function
+
+    node_func = FunctionNode.from_yaml_file("template_function.yaml").build()
+    result = node_func({"a": 1, "b": 2})
+
+    result_expected = test_function(1, 2, x=1, y=2)
+    assert (
+        result["result"] == result_expected
+    ), f"Expected: {result_expected}, Actual: {result}"
