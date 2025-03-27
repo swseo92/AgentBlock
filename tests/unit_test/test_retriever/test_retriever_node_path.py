@@ -31,7 +31,7 @@ def test_retriever_node_with_existing_yamls():
     faiss_index_path = f"{base_path}/faiss_index.bin"
 
     # 1) embedding.yaml에서 Embeddings 생성
-    embedding_model = EmbeddingModelFactory.create_from_yaml(embedding_yaml_path)
+    embedding_model = EmbeddingModelFactory.from_yaml(embedding_yaml_path)
 
     # 2) FAISS VectorStore를 in-memory로 생성 후, 테스트 텍스트를 추가
     vs = create_faiss_vector_store(embedding_model, path=None)

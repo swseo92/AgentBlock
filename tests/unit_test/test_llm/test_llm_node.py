@@ -13,14 +13,18 @@ path_config = f"{script_dir}/test_llm.yaml"
 path_config2 = f"{script_dir}/test_llm2.yaml"
 
 
+def get_config_data(path):
+    with open(path, "r", encoding="utf-8") as f:
+        config_data = yaml.safe_load(f)["nodes"][0]
+    return config_data
+
+
 def test_from_yaml():
     """
     template_llm.yaml을 읽어 LLMNode.from_yaml()을 통해
     LLMNode 객체가 제대로 생성되는지 검증.
     """
-    with open(path_config, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
-
+    config_data = get_config_data(path_config)
     node = LLMNode.from_yaml(config_data)
 
     assert node.name == "legal_assistant"
@@ -39,8 +43,7 @@ def test_build():
     """
     load_dotenv()
 
-    with open(path_config, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+    config_data = get_config_data(path_config)
 
     # 1) LLMNode 생성
     node = LLMNode.from_yaml(config_data)
@@ -61,8 +64,7 @@ def test_node_fn_inference():
     """
     load_dotenv()
 
-    with open(path_config, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+    config_data = get_config_data(path_config)
 
     node = LLMNode.from_yaml(config_data)
 
@@ -83,8 +85,7 @@ def test_graph_compile():
 
     load_dotenv()
 
-    with open(path_config, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
+    config_data = get_config_data(path_config)
 
     node = LLMNode.from_yaml(config_data)
     node_fn = node.build()
@@ -118,11 +119,8 @@ def test_multi_node():
 
     load_dotenv()
 
-    with open(path_config, "r", encoding="utf-8") as f:
-        config_data = yaml.safe_load(f)
-
-    with open(path_config2, "r", encoding="utf-8") as f:
-        config_data2 = yaml.safe_load(f)
+    config_data = get_config_data(path_config)
+    config_data2 = get_config_data(path_config2)
 
     node = LLMNode.from_yaml(config_data)
     node_fn = node.build()

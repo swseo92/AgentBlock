@@ -5,10 +5,11 @@ nodes:
 
   - name: merger
     type: function
-    function_path: functions.merge:merge_final
     input_keys:
       - law_summary
     output_key: final_answer
+    config:
+      function_path: functions.merge:merge_final
 
 edges:
   - from: START

@@ -25,7 +25,9 @@ def test_create_from_yaml_openai():
     assert os.path.exists(path_openai_embedding)
 
     # 3) create_from_yaml 호출
-    embedding_obj = EmbeddingModelFactory.from_yaml_file(path_openai_embedding)
+    embedding_obj = EmbeddingModelFactory().from_yaml_file_single_node(
+        path_openai_embedding
+    )
 
     # 4) 타입 확인
     assert isinstance(

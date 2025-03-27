@@ -112,10 +112,7 @@ class GraphBuilder:
                 cls = NODE_TYPE_MAP.get(node_type)
                 if not cls:
                     raise ValueError(f"Unsupported node type: {node_type}")
-                if node_type == "function":
-                    node_obj = cls.from_yaml(node_cfg, base_dir=self.yaml_dir)
-                else:
-                    node_obj = cls.from_yaml(node_cfg)
+                node_obj = cls.from_yaml(node_cfg, base_dir=self.yaml_dir)
 
                 node_fn = node_obj.build()
                 self.node_map[node_cfg["name"]] = node_fn

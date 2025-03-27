@@ -1,7 +1,8 @@
 nodes:
-  - name: openai_embedding
+  - name: dummy_embedding
     type: embedding
     config:
-      model: text-embedding-ada-002
+      provider: dummy
+      dimension: 5
 
 edges: []

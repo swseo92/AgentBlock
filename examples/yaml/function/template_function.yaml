@@ -1,18 +1,18 @@
 nodes:
-  - name: partial_val_node
+  - name: test_function
     type: function
     input_keys:
       - a
       - b
     output_key:
-      - sum
-      - diff
-      - product
+      - result
     config:
-      function_path: ../test_funcs/test_funcs_for_validation:partial_values_func
-
+      function_path: ./test_functions:test_function_wrapper
+      params:
+        x: 1
+        y: 2
 edges:
   - from: START
-    to: partial_val_node
-  - from: partial_val_node
+    to: test_function
+  - from: test_function
     to: END

@@ -13,6 +13,6 @@ nodes:
         y: 2
 edges:
   - from: START
-    to: partial_val_node
-  - from: partial_val_node
+    to: test_function
+  - from: test_function
     to: END

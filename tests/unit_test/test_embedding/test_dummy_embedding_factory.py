@@ -18,7 +18,9 @@ assert os.path.exists(
 
 def test_factory_create_dummy_embedding():
     # 3) 팩토리 통해 임베딩 로드
-    embedding_model = EmbeddingModelFactory.from_yaml_file(path_dummy_embedding)
+    embedding_model = EmbeddingModelFactory().from_yaml_file_single_node(
+        path_dummy_embedding
+    )
 
     # 4) 타입 및 벡터 형태 검증
     assert isinstance(

@@ -1,11 +1,10 @@
 import os
-import yaml
 import importlib
 import importlib.util
 from typing import Any, Dict, List, Union
 
 from agentblock.base import BaseNode
-from agentblock.tools.load_config import get_abspath, get_parent_dir_abspath
+from agentblock.tools.load_config import get_abspath
 
 
 def load_function_from_path(function_path: str, base_dir: str | None = None):
@@ -58,11 +57,11 @@ class FunctionNode(BaseNode):
 
     def __init__(
         self,
-        name: str,
-        function_path: str,
-        input_keys: List[str],
-        output_key: Union[str, List[str]],
-        base_dir: str,
+        name: str = None,
+        function_path: str = None,
+        input_keys: List[str] = None,
+        output_key: Union[str, List[str]] = None,
+        base_dir: str = None,
         params: Dict[str, Any] = None,
     ):
         super().__init__(name)
@@ -71,12 +70,7 @@ class FunctionNode(BaseNode):
         self.params = params or {}
         self.base_dir = base_dir
 
-        # output_key가 반드시 있어야 함 (단일/리스트)
-        # 함수 결과 검증에 사용
-        if not output_key:
-            raise ValueError(f"FunctionNode '{name}' requires 'output_key' in YAML.")
         self.output_key = output_key
-
         self._func = None  # build() 시점에 임포트
 
     @staticmethod
@@ -112,9 +106,9 @@ class FunctionNode(BaseNode):
         self._func = load_function_from_path(self.function_path, base_dir=self.base_dir)
 
         # (2) 노드가 실행될 때 호출되는 함수(Closure)를 반환
-        def node_fn(state: Dict[str, Any]) -> Dict[str, Any]:
+        def node_fn(state: Dict) -> Dict:
             # 입력값 준비
-            inputs = {k: state[k] for k in self.input_keys if k in state}
+            inputs = self.get_inputs(state)
             inputs.update(self.params)
 
             # 함수 호출 (dict 반환 필수)
@@ -152,23 +146,13 @@ class FunctionNode(BaseNode):
                 f"but output_key expects exactly {expected_keys}."
             )
 
-    @staticmethod
-    def from_yaml_file(yaml_path: str):
-        """
-        YAML 파일 경로를 입력받아 파일을 로드(safe_load) 한 뒤,
-        from_yaml 메서드를 이용해 Embeddings 인스턴스를 생성한다.
-        """
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f)["nodes"][0]
-
-        base_dir = get_parent_dir_abspath(yaml_path)
-        return FunctionNode.from_yaml(config, base_dir)
-
 
 if __name__ == "__main__":
     from test_functions import test_function
 
-    node_func = FunctionNode.from_yaml_file("template_function.yaml").build()
+    node_func = (
+        FunctionNode().from_yaml_file_single_node("template_function.yaml").build()
+    )
     result = node_func({"a": 1, "b": 2})
 
     result_expected = test_function(1, 2, x=1, y=2)

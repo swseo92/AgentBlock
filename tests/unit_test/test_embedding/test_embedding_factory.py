@@ -18,6 +18,6 @@ def test_create_from_yaml_unsupported():
 
     path = f"{base_path}/unsupported_provider.yaml"
     with pytest.raises(ValueError) as exc_info:
-        EmbeddingModelFactory.from_yaml_file(path)
+        EmbeddingModelFactory().from_yaml_file_single_node(path)
 
     assert "Unsupported embedding model provider" in str(exc_info.value)

@@ -1,21 +1,27 @@
 nodes:
+  - name: dummy_embedding
+    type: embedding
+    config:
+      provider: dummy
+      dimension: 5
+
   - name: my_retriever
     type: retriever
-    embedding_path: "elements/embedding.yaml"
-    vector_store_path: "elements/vector_store.yaml"
-    retriever_config:
-      search_method: invoke
-      search_type: "similarity"
-      search_kwargs:
-        k: 5
-        # e.g. filter: {"category": "finance"}
     input_keys:
       - query
     output_key: retrieved_docs
-
+    config:
+      embedding:
+        name: "default_embedding"   # or from_file: "embedding.yaml"
+      vector_store:
+        name: "my_faiss"           # or from_file: "vector_store.yaml"
+      search_method: "invoke"
+      search_type: "similarity"
+      search_kwargs:
+        k: 5
 edges:
   - from: START
-    to: invalid_node
-  - from: invalid_node
+    to: my_retriever
+  - from: my_retriever
     to: END
 

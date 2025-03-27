@@ -33,7 +33,7 @@ class VectorStoreFactory:
         else:
             raise ValueError(f"Unsupported vector store provider: {provider}")
 
-    def create_from_yaml(self, yaml_path: str, embedding_model: Embeddings):
+    def from_yaml(self, yaml_path: str, embedding_model: Embeddings):
         """
         YAML에서 vector_store 설정을 읽어와,
         path + model 식별자를 키로 해 캐싱 로직을 적용.

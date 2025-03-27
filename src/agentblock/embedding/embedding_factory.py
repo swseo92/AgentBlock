@@ -1,8 +1,8 @@
-import yaml
 from typing import Dict, Any
 from langchain_core.embeddings.embeddings import Embeddings
 from langchain_openai import OpenAIEmbeddings
 from agentblock.embedding.dummy_embedding import DummyEmbedding
+from agentblock.tools.load_config import get_yaml_for_single_node_file
 
 
 class EmbeddingModelFactory:
@@ -39,7 +39,6 @@ class EmbeddingModelFactory:
         }
         """
         embedding_conf = config["config"]
-
         provider = embedding_conf["provider"]
         # 나머지 파라미터들을 extra_kwargs로
         extra_kwargs = dict(embedding_conf)
@@ -49,12 +48,13 @@ class EmbeddingModelFactory:
             provider=provider, **extra_kwargs
         )
 
-    @staticmethod
-    def from_yaml_file(yaml_path: str) -> Embeddings:
-        """
-        YAML 파일 경로를 입력받아 파일을 로드(safe_load) 한 뒤,
-        from_yaml 메서드를 이용해 Embeddings 인스턴스를 생성한다.
-        """
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f)["nodes"][0]
-        return EmbeddingModelFactory.from_yaml(config)
+    def from_yaml_file_single_node(self, yaml_path):
+        config = get_yaml_for_single_node_file(yaml_path)
+        print(config)
+        return self.from_yaml(config)
+
+
+if __name__ == "__main__":
+    model = EmbeddingModelFactory().from_yaml_file_single_node(
+        "template_embedding.yaml"
+    )
