@@ -1,0 +1,18 @@
+nodes:
+  - name: sum_cal_node
+    type: function_from_library
+    input_keys:
+      - a
+      - b
+      - x
+      - y
+    output_key: result
+    config:
+      from_library: "./some_library:sum_cal"
+      params: []
+
+edges:
+  - from: START
+    to: sum_cal_node
+  - from: sum_cal_node
+    to: END
