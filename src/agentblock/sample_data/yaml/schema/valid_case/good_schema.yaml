@@ -1,0 +1,31 @@
+references:
+  - name: my_embedding
+    type: embedding
+    config:
+      provider: openai
+      model: text-embedding-ada-002
+
+nodes:
+  - name: text_splitter
+    type: function
+    input_keys: ["raw_docs"]
+    output_key: "split_docs"
+    config:
+      function_path: "langchain_text_splitter:character_text_split"
+
+  - name: embed_and_store
+    type: function
+    input_keys: ["split_docs"]
+    output_key: "store_result"
+    config:
+      function_path: "my_module:embed_store_func"
+      references:
+        embedding: "my_embedding"
+
+edges:
+  - from: START
+    to: text_splitter
+  - from: text_splitter
+    to: embed_and_store
+  - from: embed_and_store
+    to: END

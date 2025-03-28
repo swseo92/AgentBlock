@@ -1,0 +1,27 @@
+references:
+  - name: my_vector_store
+    type: vector_store
+    config:
+      provider: faiss
+      path: "faiss_index.bin"
+
+nodes:
+  - name: text_splitter
+    type: function
+    input_keys: ["raw_docs"]
+    output_key: "split_docs"
+    config:
+      function_path: "splitter.func"
+
+  - name: invalid_node
+    type: embedding
+    config:
+      provider: openai
+      model: text-embedding-ada-002
+      # 여기는 원래 references 섹션에 들어가야 하는데, 잘못해서 nodes에 섞여 있음
+
+edges:
+  - from: START
+    to: text_splitter
+  - from: text_splitter
+    to: END

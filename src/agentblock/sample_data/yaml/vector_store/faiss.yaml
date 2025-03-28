@@ -1,6 +1,14 @@
-nodes:
+reference:
+  - name: openai_embedding
+    type: embedding
+    config:
+      provider: openai
+      model: text-embedding-ada-002
+
   - name: my_faiss
     type: vector_store
     config:
       provider: faiss
       path: test.faiss
+      reference:
+        embedding: openai_embedding

@@ -1,0 +1,30 @@
+references:
+  - name: my_embedding
+    type: embedding
+    config:
+      provider: openai
+
+nodes:
+  - name: node_a
+    type: function
+    input_keys: []
+    output_key: []
+    config:
+      function_path: "dummy.module:a"
+
+  - name: node_b
+    type: function
+    input_keys: []
+    output_key: []
+    config:
+      function_path: "dummy.module:b"
+
+edges:
+  - from: START
+    to: node_a
+  - from: node_a
+    to: END
+  - from: node_a
+    to: node_b
+  - from: node_b
+    to: END

@@ -1,19 +1,36 @@
+from typing import Dict
+
+
 from abc import ABC, abstractmethod
-from agentblock.tools.load_config import (
-    get_yaml_for_single_node_file,
-    get_parent_dir_abspath,
-)
 
 
-class BaseNode(ABC):
+class BaseComponent(ABC):
     def __init__(self, name: str):
         self.name = name
+
+    @staticmethod
+    @abstractmethod
+    def from_yaml(
+        config: dict, base_dir: str, references_map: Dict[str, "BaseReference"]
+    ) -> "BaseComponent":
+        pass
+
+    @abstractmethod
+    def build(self):
+        pass
+
+
+class BaseNode(BaseComponent):
+    def __init__(self, name: str):
+        super().__init__(name)
         self.input_keys = []
         self.output_key = None
 
     @staticmethod
     @abstractmethod
-    def from_yaml(config: dict) -> "BaseNode":
+    def from_yaml(
+        config: dict, base_dir, references_map: Dict[str, "BaseReference"]
+    ) -> "BaseNode":
         pass
 
     @abstractmethod
@@ -25,7 +42,20 @@ class BaseNode(ABC):
         inputs = {k: state_dict[k] for k in self.input_keys if k in state_dict}
         return inputs
 
-    def from_yaml_file_single_node(self, yaml_path):
-        config = get_yaml_for_single_node_file(yaml_path)
-        base_dir = get_parent_dir_abspath(yaml_path)
-        return self.from_yaml(config, base_dir)
+
+class BaseReference(BaseComponent):
+    """
+    비실행 노드(embedding, vector_store, loader 등)
+    BFS와 무관하지만, from_yaml/build 패턴은 Node와 유사.
+    """
+
+    @staticmethod
+    @abstractmethod
+    def from_yaml(
+        config: dict, base_dir, references_map: Dict[str, "BaseReference"]
+    ) -> "BaseReference":
+        pass
+
+    @abstractmethod
+    def build(self) -> None:
+        pass

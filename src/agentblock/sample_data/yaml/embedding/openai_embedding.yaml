@@ -1,4 +1,4 @@
-nodes:
+reference:
   - name: openai_embedding
     type: embedding
     config:

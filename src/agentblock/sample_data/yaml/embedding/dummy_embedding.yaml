@@ -1,4 +1,4 @@
-nodes:
+reference:
   - name: dummy_embedding
     type: embedding
     config:
