@@ -6,6 +6,7 @@ from langgraph.graph import StateGraph, START, END
 from agentblock.llm.llm_node import LLMNode
 from agentblock.function import FunctionFromFileNode, FunctionFromLibraryNode
 from agentblock.retriever.retriever_node import RetrieverNode
+from agentblock.data_loader.base import GenericLoaderNode
 from agentblock.schema.tools import validate_yaml
 
 
@@ -16,6 +17,7 @@ NODE_TYPE_MAP = {
     "function_from_library": FunctionFromLibraryNode,
     "from_yaml": "handled separately",  # 따로 처리
     "retriever": RetrieverNode,
+    "data_loader": GenericLoaderNode,
 }
 
 

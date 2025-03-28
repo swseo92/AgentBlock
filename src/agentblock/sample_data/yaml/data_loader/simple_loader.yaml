@@ -1,0 +1,17 @@
+nodes:
+  - name: file_loader_node
+    type: data_loader
+    input_keys:
+      - file_path
+    output_key: documents
+    config:
+      loader_kind: simple_file_loader
+      args: []
+      kwargs:
+        encoding: "utf-8"
+
+edges:
+  - from: START
+    to: file_loader_node
+  - from: file_loader_node
+    to: END

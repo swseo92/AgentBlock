@@ -9,6 +9,7 @@ EXECUTION_TYPES = {
     "retriever",
     "router",
     "from_yaml",
+    "data_loader",
 }
 NON_EXECUTION_TYPES = {"embedding", "vector_store"}
 

@@ -3,7 +3,7 @@ from agentblock.graph_builder import GraphBuilder
 from agentblock.sample_data.tools import get_sample_data
 
 
-base_path = "yaml/function/test_yaml"
+base_path = "yaml/function/function_from_file/test_yaml"
 yaml_path_test_multi_key_missing = get_sample_data(
     f"{base_path}/multi_key_missing.yaml"
 )
