@@ -1,20 +1,22 @@
 import pytest
 from agentblock.graph_builder import GraphBuilder
-import os
-
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(script_path)
+from agentblock.sample_data.tools import get_sample_data
 
 
-base_path = f"{script_dir}/test_yaml/"
+base_path = "yaml/function/test_yaml"
+yaml_path_test_single_value = get_sample_data(f"{base_path}/test_single_value.yaml")
+yaml_path_test_multiple_values = get_sample_data(
+    f"{base_path}/test_multiple_values.yaml"
+)
+yaml_path_test_wrapped_func = get_sample_data(f"{base_path}/test_wrapped_func.yaml")
+yaml_path_test_error_func = get_sample_data(f"{base_path}/test_error_func.yaml")
 
 
 def test_single_value():
     """
     Test the single_value_func with scale=2 => result['value'] = x*2
     """
-    yaml_path = f"{base_path}/test_single_value.yaml"
-    graph = GraphBuilder(yaml_path).build_graph()
+    graph = GraphBuilder(yaml_path_test_single_value).build_graph()
 
     result = graph.invoke({"x": 10})
     # single_value_func => {"value": 10*2=20}
@@ -26,8 +28,7 @@ def test_multiple_values():
     multiple_values_func => {sum, diff, product}
     """
     # BUGFIX: changed "f{base_path}" → f"{base_path}"
-    yaml_path = f"{base_path}/test_multiple_values.yaml"
-    graph = GraphBuilder(yaml_path).build_graph()
+    graph = GraphBuilder(yaml_path_test_multiple_values).build_graph()
 
     result = graph.invoke({"a": 5, "b": 2})
     # multiple_values_func => {"sum":7, "diff":3, "product":10}
@@ -40,8 +41,7 @@ def test_wrapped_func():
     """
     wrapped_return_dict => {"wrapped_result": x+y}
     """
-    yaml_path = f"{base_path}/test_wrapped_func.yaml"
-    graph = GraphBuilder(yaml_path).build_graph()
+    graph = GraphBuilder(yaml_path_test_wrapped_func).build_graph()
 
     result = graph.invoke({"x": 3, "y": 4})
     # => {"wrapped_result": 7}
@@ -52,8 +52,7 @@ def test_error_func():
     """
     error_func => returns string => Expect ExecutionError
     """
-    yaml_path = f"{base_path}/test_error_func.yaml"
-    graph = GraphBuilder(yaml_path).build_graph()
+    graph = GraphBuilder(yaml_path_test_error_func).build_graph()
 
     # 만약 FunctionNode 쪽에서 dict가 아닌 값이 반환되면
     # ValueError -> ExecutionError(...)로 래핑될 수 있음

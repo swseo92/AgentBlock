@@ -1,16 +1,13 @@
 from agentblock.embedding.embedding_factory import EmbeddingModelFactory
 from agentblock.embedding.dummy_embedding import DummyEmbedding
-import agentblock.tools.load_config as load_config
-
+from agentblock.sample_data.tools import get_sample_data
 import os
 
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 
 
-path_dummy_embedding = load_config.get_abspath(
-    "../../yaml/embeddings/dummy_embedding.yaml", script_dir
-)
+path_dummy_embedding = get_sample_data("yaml/embedding/dummy_embedding.yaml")
 assert os.path.exists(
     path_dummy_embedding
 ), f"Dummy embedding config file not found: {path_dummy_embedding}"

@@ -60,12 +60,20 @@ class LLMNode(BaseNode):
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
+    from agentblock.schema.tools import validate_yaml
 
     load_dotenv()
 
-    node = LLMNode().from_yaml_file_single_node("template_llm.yaml").build()
+    path_yaml = "template_llm.yaml"
+    validate_yaml(path_yaml)
+
+    node = LLMNode().from_yaml_file_single_node(path_yaml).build()
     result = node({"query": "hi"})
     print(result)
 
     assert "law_response" in result.keys(), result
     assert result["law_response"], result
+
+    from agentblock.graph_builder import GraphBuilder
+
+    graph = GraphBuilder(path_yaml).build_graph()

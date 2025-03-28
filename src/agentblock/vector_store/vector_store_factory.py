@@ -1,8 +1,10 @@
-import yaml
 from langchain_core.embeddings.embeddings import Embeddings
 from agentblock.vector_store.faiss_utils import create_faiss_vector_store
-import agentblock.tools.load_config as load_config
-import os
+from agentblock.tools.load_config import (
+    get_yaml_for_single_node_file,
+    get_parent_dir_abspath,
+    get_abspath,
+)
 
 
 class VectorStoreFactory:
@@ -33,23 +35,15 @@ class VectorStoreFactory:
         else:
             raise ValueError(f"Unsupported vector store provider: {provider}")
 
-    def from_yaml(self, yaml_path: str, embedding_model: Embeddings):
-        """
-        YAML에서 vector_store 설정을 읽어와,
-        path + model 식별자를 키로 해 캐싱 로직을 적용.
-        """
-        with open(yaml_path, "r", encoding="utf-8") as f:
-            config_data = yaml.safe_load(f)
+    def from_yaml(self, config: str, embedding_model: Embeddings, base_dir=None):
+        assert base_dir is not None, "base_dir must be provided"
 
-        vector_section = config_data.get("vector_store", {})
-        provider = vector_section.get("provider", "faiss")
-        vs_config = vector_section.get("config", {})
+        vs_config = config["config"]
 
+        provider = vs_config["provider"]
         path = vs_config.get("path", None)
         if path is not None:
-            base_path = load_config.get_parent_dir_abspath(yaml_path)
-            path = load_config.get_abspath(path, base_path)
-            assert os.path.exists(path)
+            path = get_abspath(path, base_dir)
             vs_config.update({"path": path})
 
         # 모델 식별자 획득 (e.g. model_name, dimension)
@@ -63,7 +57,7 @@ class VectorStoreFactory:
             return self._cache[cache_key]
 
         # 새로 로드
-        vs_obj = self.create_vector_store(provider, embedding_model, **vs_config)
+        vs_obj = self.create_vector_store(provider, embedding_model, path=path)
 
         # 캐시에 저장
         self._cache[cache_key] = vs_obj
@@ -75,3 +69,21 @@ class VectorStoreFactory:
 
         # 여기서는 그냥 임시로 str() 변환
         return str(embedding_model)
+
+    def from_yaml_file_single_node(self, yaml_path, embedding_model: Embeddings):
+        config = get_yaml_for_single_node_file(yaml_path)
+        base_dir = get_parent_dir_abspath(yaml_path)
+        vector_store = self.from_yaml(config, embedding_model, base_dir=base_dir)
+        return vector_store
+
+
+if __name__ == "__main__":
+    from agentblock.embedding.dummy_embedding import DummyEmbedding
+    from agentblock.schema.tools import validate_yaml
+
+    path_yaml = "template_vector_store.yaml"
+    validate_yaml(path_yaml)
+
+    model = DummyEmbedding()
+    factory = VectorStoreFactory()
+    vs = factory.from_yaml_file_single_node(path_yaml, model)

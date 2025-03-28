@@ -4,5 +4,3 @@ nodes:
     config:
       provider: openai
       model: text-embedding-ada-002
-
-edges: []

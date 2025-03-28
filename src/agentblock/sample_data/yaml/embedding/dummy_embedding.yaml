@@ -4,5 +4,3 @@ nodes:
     config:
       provider: dummy
       dimension: 5
-
-edges: []

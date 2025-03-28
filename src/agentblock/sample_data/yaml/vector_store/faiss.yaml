@@ -3,3 +3,4 @@ nodes:
     type: vector_store
     config:
       provider: faiss
+      path: test.faiss

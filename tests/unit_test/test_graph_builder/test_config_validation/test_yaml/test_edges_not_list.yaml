@@ -1,7 +1,8 @@
 nodes:
   - name: edge_error_node
     type: function
-    function_path: mypackage.edgecheck:some_func
+    config:
+      function_path: mypackage.edgecheck:some_func
 
 edges: # 여기서 리스트가 아니라 dict로 => 에러
   from: START

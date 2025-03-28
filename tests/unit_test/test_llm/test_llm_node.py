@@ -1,16 +1,12 @@
 import yaml
 
 from agentblock.llm.llm_node import LLMNode
+from agentblock.sample_data.tools import get_sample_data
 
 from dotenv import load_dotenv
-import os
 
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(script_path)
-os.chdir(script_dir)
-
-path_config = f"{script_dir}/test_llm.yaml"
-path_config2 = f"{script_dir}/test_llm2.yaml"
+path_config = get_sample_data("yaml/llm/legal_assistant.yaml")
+path_config2 = get_sample_data("yaml/llm/legal_assistant2.yaml")
 
 
 def get_config_data(path):

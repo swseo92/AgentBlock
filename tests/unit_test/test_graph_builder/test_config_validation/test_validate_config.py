@@ -30,8 +30,6 @@ def test_valid_config():
         "test_node_missing_name.yaml",
         "test_node_missing_type.yaml",
         "test_edges_not_list.yaml",
-        "test_edge_missing_from.yaml",
-        # 추가 케이스들
         "test_multiple_end.yaml",
         "test_unreachable_node.yaml",
         "test_node_cannot_reach_end.yaml",

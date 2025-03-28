@@ -55,6 +55,8 @@ class EmbeddingModelFactory:
 
 
 if __name__ == "__main__":
-    model = EmbeddingModelFactory().from_yaml_file_single_node(
-        "template_embedding.yaml"
-    )
+    from agentblock.sample_data.tools import get_sample_data
+
+    path_yaml = get_sample_data("dummy_embedding.yaml")
+
+    model = EmbeddingModelFactory().from_yaml_file_single_node(path_yaml)

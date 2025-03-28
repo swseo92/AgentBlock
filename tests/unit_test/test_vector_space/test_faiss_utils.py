@@ -76,15 +76,15 @@ def test_faiss_save_and_load(embedding_model):
        - 문서를 추가하고 save_local
        - load_local로 새로 로드한 뒤, 동일 쿼리에 대해 같은 결과를 주는지 테스트
     """
-    vector_store_1 = create_faiss_vector_store(
-        embedding_model=embedding_model, path=None
-    )
-    docs = ["Apple banana", "Orange fruit", "Computer device"]
-    vector_store_1.add_texts(docs)
-
     with tempfile.TemporaryDirectory() as tmp_dir:
         save_path = os.path.join(tmp_dir, "faiss_index.bin")
-        vector_store_1.save_local(save_path)
+
+        vector_store_1 = create_faiss_vector_store(
+            embedding_model=embedding_model, path=save_path
+        )
+        docs = ["Apple banana", "Orange fruit", "Computer device"]
+        vector_store_1.add_texts(docs)
+        vector_store_1.save()
 
         # 새로 로드
         vector_store_2 = create_faiss_vector_store(

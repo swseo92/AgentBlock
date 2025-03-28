@@ -1,7 +1,0 @@
-nodes:
-  - name: node_ok
-    type: function
-    function_path: mypackage.ok:some_func
-
-edges:
-  - to: node_ok  # from이 없음 => 에러

@@ -1,4 +1,0 @@
-vector_store:
-  provider: faiss
-  config:
-    path: "../../faiss_index.bin"

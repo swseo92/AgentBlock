@@ -1,7 +1,8 @@
 nodes:
   - name: law_pipeline
     type: from_yaml
-    from_file: graphs/law_graph.yaml
+    config:
+      from_file: graphs/law_graph.yaml
 
   - name: merger
     type: function

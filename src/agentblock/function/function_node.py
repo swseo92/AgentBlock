@@ -149,13 +149,19 @@ class FunctionNode(BaseNode):
 
 if __name__ == "__main__":
     from test_functions import test_function
+    from agentblock.schema.tools import validate_yaml
 
-    node_func = (
-        FunctionNode().from_yaml_file_single_node("template_function.yaml").build()
-    )
+    path_yaml = "template_function.yaml"
+    validate_yaml(path_yaml)
+
+    node_func = FunctionNode().from_yaml_file_single_node(path_yaml).build()
     result = node_func({"a": 1, "b": 2})
 
     result_expected = test_function(1, 2, x=1, y=2)
     assert (
         result["result"] == result_expected
     ), f"Expected: {result_expected}, Actual: {result}"
+
+    from agentblock.graph_builder import GraphBuilder
+
+    graph = GraphBuilder(path_yaml).build_graph()

@@ -1,14 +1,30 @@
 from agentblock.graph_builder import GraphBuilder
-from dotenv import load_dotenv
-import os
+from agentblock.sample_data.tools import get_sample_data
 
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(script_path)
+from dotenv import load_dotenv
 
 load_dotenv()
 
-base_path = script_dir
-path_main_graph = f"{base_path}/main_graph.yaml"
+
+path_main_graph = get_sample_data("graph/graph_for_test/main_graph.yaml")
+
+# 아래와 같은 구조를 테스트함
+# 테스트 범위
+# - GraphBuilder를 통한 파이프라인 조립
+# - llm, function 객체 검증
+# - 서브그래프 구조
+
+# (START)
+#    ↓
+# law_pipeline  (type: from_yaml, from_file=graphs/law_graph.yaml)
+#    ↓
+# llm_legal     (type: llm)
+#    ↓
+# summarizer    (type: llm)
+#    ↓
+# merger        (type: function)
+#    ↓
+# (END)
 
 
 def test_graph_from_recursive_yaml():
