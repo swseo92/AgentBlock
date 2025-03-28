@@ -15,10 +15,9 @@ def test_llm_factory_langchain():
     config = load_config(path_config)
     config_node = config["nodes"][0]
     provider = config_node["config"]["provider"]
-    args = config_node["config"]["args"]
-    kwargs = config_node["config"]["kwargs"]
+    param = config_node["config"]["param"]
 
-    llm = LLMFactory.create_llm(*args, provider=provider, **kwargs)
+    llm = LLMFactory.create_llm(provider=provider, **param)
     assert isinstance(llm, ChatOpenAI)
 
 

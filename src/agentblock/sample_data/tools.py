@@ -21,5 +21,8 @@ def get_sample_data(relative_path: str) -> str:
 
     # 5) 유효성 검사
     if absolute_path.split(".")[-1] == "yaml":
-        validate_yaml(absolute_path)
+        try:
+            validate_yaml(absolute_path)
+        except Exception as e:
+            raise ValueError(f"Invalid YAML file: {absolute_path}", e) from e
     return absolute_path

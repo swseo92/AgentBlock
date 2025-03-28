@@ -1,0 +1,36 @@
+references:
+  - name: dummy_emb
+    type: embedding
+    config:
+      provider: dummy
+      param:
+        dimension: 5
+
+  - name: my_faiss
+    type: vector_store
+    config:
+      provider: faiss
+      param:
+        path: test.faiss
+      reference:
+        embedding: dummy_emb
+
+nodes:
+  - name: my_retriever
+    type: retriever
+    input_keys:
+      - query
+    output_key: retrieved_docs
+    config:
+      search_method: "invoke"
+      search_type: "similarity"
+      search_kwargs:
+        k: 5
+      reference:
+        vector_store: my_faiss
+
+edges:
+  - from: START
+    to: my_retriever
+  - from: my_retriever
+    to: END

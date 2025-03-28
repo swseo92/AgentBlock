@@ -1,0 +1,8 @@
+references:
+  - name: my_tokenizer
+    type: embedding
+    config:
+      provider: dummy
+      model: "fake-model"
+
+# 실행 노드도 없고, edges도 없음 => validate_yaml 통과

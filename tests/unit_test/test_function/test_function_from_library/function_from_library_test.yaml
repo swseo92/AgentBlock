@@ -9,7 +9,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:sum_cal"
-      params: []
+      param: []
 
 edges:
   - from: START

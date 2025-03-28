@@ -1,170 +1,113 @@
+from typing import Dict, Any
 from agentblock.base import BaseNode
-from agentblock.embedding.embedding_factory import EmbeddingModelFactory
-from agentblock.vector_store.vector_store_factory import VectorStoreFactory
-import agentblock.tools.load_config as load_config
 
 
 class RetrieverNode(BaseNode):
+    """
+    새 스키마용 Retriever 노드.
+    - BFS 실행 시, state["query"]를 받아 vector_store에서 검색
+    - 구버전에서 가져온 search_method, search_type, search_kwargs 로직 반영
+    """
+
     def __init__(
         self,
         name: str,
         input_keys: list,
         output_key: str,
-        retriever_config: dict,
-        base_dir: str = None,
+        vector_store: Any = None,
+        search_method: str = "invoke",
+        search_type: str = "similarity",
+        search_kwargs: dict = None,
     ):
-        """
-        retriever_config 예시 (모든 필드가 필수):
-        {
-          "embedding": {"from_file": "embedding.yaml"},  # or "name": "...", ...
-          "vector_store": {"from_file": "vs.yaml"},      # or "name": "...", ...
-          "search_method": "invoke",
-          "search_type": "similarity",
-          "search_kwargs": {"k": 5}
-        }
-        """
         super().__init__(name)
         self.input_keys = input_keys
         self.output_key = output_key
-        self.retriever_conf = retriever_config
-        self.base_dir = base_dir
 
-        self.vector_store = None
+        # 이미 build()된 LangChain VectorStore (예: FAISS, Chroma 등)
+        self.vector_store = vector_store
+
+        # 구버전에서 쓰던 검색 파라미터
+        self.search_method = search_method
+        self.search_type = search_type
+        self.search_kwargs = search_kwargs or {}
 
     @staticmethod
-    def from_yaml(config: dict, base_dir: str) -> "RetrieverNode":
+    def from_yaml(
+        config: dict, base_dir: str, references_map: Dict[str, Any]
+    ) -> "RetrieverNode":
         """
-        config는 이미 yaml.safe_load()된 dict (예: template_retriever.yaml).
-        'type': 'retriever' 노드를 찾아 RetrieverNode 인스턴스를 생성한다.
+        새 스키마:
+          config["config"]["reference"]["vector_store"] 에서 vector_store 이름을 찾고,
+          references_map[that_name]에서 실제 VectorStore 객체 획득.
+          search_method / search_type / search_kwargs도 함께 파싱.
         """
-        # 필수 필드 직접 참조
-        if "name" not in config:
-            raise ValueError("retriever 노드에 'name'이 없습니다.")
-        name = config["name"]
-
-        if "input_keys" not in config:
-            raise ValueError(f"retriever 노드 '{name}'에 'input_keys'가 없습니다.")
+        node_name = config["name"]
         input_keys = config["input_keys"]
-
-        if "output_key" not in config:
-            raise ValueError(f"retriever 노드 '{name}'에 'output_key'가 없습니다.")
         output_key = config["output_key"]
 
-        if "config" not in config:
-            raise ValueError(f"retriever 노드 '{name}'에 'config' 필드가 없습니다.")
-        retriever_config = config["config"]
+        node_cfg = config.get("config", {})
+        # 구버전 로직 통합
+        search_method = node_cfg.get("search_method", "invoke")
+        search_type = node_cfg.get("search_type", "similarity")
+        search_kwargs = node_cfg.get("search_kwargs", {})
+
+        # vector_store 참조
+        ref_links = node_cfg.get("reference", {})
+        vs_name = ref_links.get("vector_store")
+        if not vs_name:
+            raise ValueError(f"RetrieverNode '{node_name}'에 vector_store 참조가 없습니다.")
+        vector_store_obj = references_map.get(vs_name)
+        if not vector_store_obj:
+            raise ValueError(
+                f"VectorStore '{vs_name}' not found in references_map for retriever '{node_name}'"
+            )
 
         return RetrieverNode(
-            name=name,
+            name=node_name,
             input_keys=input_keys,
             output_key=output_key,
-            retriever_config=retriever_config,
-            base_dir=base_dir,
+            vector_store=vector_store_obj,
+            search_method=search_method,
+            search_type=search_type,
+            search_kwargs=search_kwargs,
         )
 
     def build(self):
         """
-        빌드 단계:
-          1) embedding 설정 로드
-          2) vector_store 설정 로드
-          3) search_type / search_kwargs / search_method 확인 (모두 필수!)
-          4) 최종 node_fn 반환
+        BFS에서 이 Node가 실행될 때 호출될 함수(node_fn)를 반환.
+        node_fn이 query를 받아 vector_store 검색, 결과를 state에 저장.
         """
-        # 1) 임베딩
-        if "embedding" not in self.retriever_conf:
-            raise ValueError("retriever_config에 'embedding'이 없습니다.")
-        embedding_conf = self.retriever_conf["embedding"]
-        embedding_model = _load_embedding(embedding_conf, self.base_dir)
 
-        # 2) 벡터스토어
-        if "vector_store" not in self.retriever_conf:
-            raise ValueError("retriever_config에 'vector_store'가 없습니다.")
-        vector_store_conf = self.retriever_conf["vector_store"]
-        self.vector_store = _load_vector_store(
-            vector_store_conf, embedding_model, self.base_dir
-        )
-
-        # 3) search_method / search_type / search_kwargs (모두 필수!)
-        if "search_method" not in self.retriever_conf:
-            raise ValueError("retriever_config에 'search_method'가 없습니다.")
-        search_method = self.retriever_conf["search_method"]
-
-        if "search_type" not in self.retriever_conf:
-            raise ValueError("retriever_config에 'search_type'가 없습니다.")
-        search_type = self.retriever_conf["search_type"]
-
-        if "search_kwargs" not in self.retriever_conf:
-            raise ValueError("retriever_config에 'search_kwargs'가 없습니다.")
-        search_kwargs = self.retriever_conf["search_kwargs"]
-
-        retriever = self.vector_store.as_retriever(
-            search_type=search_type, search_kwargs=search_kwargs
-        )
-
-        def node_fn(state):
-            # input_keys가 여러 개인 경우, 여기서는 첫 번째만 사용
+        def node_fn(state: Dict) -> Dict:
+            # 1) query 가져오기
+            inputs = self.get_inputs(state)
             if not self.input_keys:
                 raise ValueError(f"RetrieverNode '{self.name}'에 input_keys가 비어있습니다.")
             query_key = self.input_keys[0]
 
-            if query_key not in state:
-                raise ValueError(f"state에 '{query_key}' 키가 없습니다.")
-            query_val = state[query_key]
+            if query_key not in inputs:
+                raise ValueError(
+                    f"state에 '{query_key}' 키가 없습니다 (RetrieverNode '{self.name}')."
+                )
+            query_val = inputs[query_key]
 
-            # retriever에서 search_method 호출
-            search_fn = getattr(retriever, search_method, None)
+            # 2) vector_store.as_retriever()로 검색객체 생성
+            #    or 직접 similarity_search 호출
+            # 여기서는 구버전 방식( as_retriever + getattr(retriever, search_method) )을 예시
+            if not hasattr(self.vector_store, "as_retriever"):
+                raise TypeError("vector_store 객체가 'as_retriever()' 메서드를 지원하지 않습니다.")
+
+            retriever = self.vector_store.as_retriever(
+                search_type=self.search_type, search_kwargs=self.search_kwargs
+            )
+            search_fn = getattr(retriever, self.search_method, None)
             if not search_fn:
-                raise ValueError(f"Retriever does not have method '{search_method}'")
+                raise ValueError(f"retriever에 메서드 '{self.search_method}'가 없습니다.")
 
+            # 3) 검색 수행
             results = search_fn(query_val)
+
+            # 4) 결과를 BFS state에 저장
             return {self.output_key: results}
 
         return node_fn
-
-
-def _load_embedding(emb_conf: dict, base_dir: str):
-    """
-    embedding:
-      from_file: "embedding.yaml"   # 실제 파일
-      # or name: "dummy_embedding"  # (미구현: NotImplementedError)
-      # or provider/dimension ...
-    """
-    # name + from_file 동시 지정 시 에러
-    if "name" in emb_conf and "from_file" in emb_conf:
-        raise ValueError("Cannot specify both 'name' and 'from_file'")
-
-    # from_file 분기
-    if "from_file" in emb_conf:
-        path = load_config.get_abspath(emb_conf["from_file"], base_dir)
-        return EmbeddingModelFactory().from_yaml_file_single_node(path)
-
-    # name 분기 (미구현)
-    elif "name" in emb_conf:
-        raise NotImplementedError(
-            "'name' reference for embedding is not implemented in this example."
-        )
-
-    # 직접 provider/dimension ...
-    else:
-        return EmbeddingModelFactory.from_yaml({"embedding": emb_conf})
-
-
-def _load_vector_store(vs_conf: dict, embedding_model, base_dir: str):
-    """
-    vector_store:
-      from_file: "vs.yaml"
-      # or
-      name: "my_faiss"
-    """
-    if "from_file" in vs_conf:
-        path = load_config.get_abspath(vs_conf["from_file"], base_dir)
-
-        return VectorStoreFactory().from_yaml_file_single_node(
-            yaml_path=path, embedding_model=embedding_model
-        )
-    elif "name" in vs_conf:
-        raise NotImplementedError(
-            "'name' reference for vector_store is not implemented in this example."
-        )
-    else:
-        return VectorStoreFactory().from_yaml(vs_conf, embedding_model=embedding_model)

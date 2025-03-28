@@ -5,8 +5,7 @@ nodes:
     output_key: "answer2"
     config:
       provider: openai
-      args: []
-      kwargs:
+      param:
         model_name: gpt-4o-mini
         temperature: 0.3
         max_tokens: 512

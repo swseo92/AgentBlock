@@ -1,6 +1,7 @@
-nodes:
+references:
   - name: openai_embedding
     type: embedding
     config:
       provider: openai
-      model: text-embedding-ada-002
+      param:
+        model: text-embedding-ada-002

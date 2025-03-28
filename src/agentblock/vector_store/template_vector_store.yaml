@@ -1,5 +1,0 @@
-nodes:
-  - name: my_faiss
-    type: vector_store
-    config:
-      provider: faiss

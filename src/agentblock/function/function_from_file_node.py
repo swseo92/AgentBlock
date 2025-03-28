@@ -10,7 +10,7 @@ from agentblock.tools.load_config import get_abspath
 class FunctionFromFileNode(FunctionNode):
     """
     기존의 'function_path' 로직을 구현 (구 FunctionNode).
-    - parse_config: config에서 function_path, params 가져옴
+    - parse_config: config에서 function_path, param 가져옴
     - import_target_function: importlib 통해 파일 로드
     - call_target_function: dict 반환 함수 실행
     """
@@ -22,17 +22,19 @@ class FunctionFromFileNode(FunctionNode):
         output_key: Union[str, List[str]],
         base_dir: str = None,
         function_path: str = None,
-        params: Dict[str, Any] = None,
+        param: Dict[str, Any] = None,
     ):
         super().__init__(name, input_keys, output_key)
         self.base_dir = base_dir
         self.function_path = function_path
-        self.params = params or {}
+        self.param = param or {}
 
         self._loaded_func = None
 
     @staticmethod
-    def from_yaml(config: dict, base_dir: str = None) -> "FunctionFromFileNode":
+    def from_yaml(
+        config: dict, base_dir: str, references_map: Dict[str, Any]
+    ) -> "FunctionFromFileNode":
         if "output_key" not in config:
             raise ValueError(f"Missing 'output_key' in config: {config.get('name')}")
 
@@ -42,7 +44,7 @@ class FunctionFromFileNode(FunctionNode):
             output_key=config["output_key"],
             base_dir=base_dir,
             function_path=config["config"]["function_path"],
-            params=config["config"].get("params", {}),
+            param=config["config"].get("param", {}),
         )
 
     def parse_config(self, config: dict = None, base_dir: str = None):
@@ -84,9 +86,9 @@ class FunctionFromFileNode(FunctionNode):
         self._loaded_func = func
 
     def call_target_function(self, inputs: Dict[str, Any]) -> Any:
-        # inputs + self.params => dict
+        # inputs + self.param => dict
         final_inputs = dict(inputs)
-        final_inputs.update(self.params)
+        final_inputs.update(self.param)
 
         result = self._loaded_func(**final_inputs)
         # if not isinstance(result, dict):

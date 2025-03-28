@@ -6,7 +6,7 @@ nodes:
     output_key: value  # 단일 키
     config:
       function_path: ../test_funcs/single_value:single_value_func
-      params:
+      param:
         scale: 2
 edges:
   - from: START

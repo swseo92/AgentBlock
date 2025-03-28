@@ -18,16 +18,18 @@ class FunctionFromLibraryNode(FunctionNode):
         output_key: Union[str, List[str]],
         base_dir: str = None,
         from_library: str = None,
-        params: List[str] = None,
+        param: List[str] = None,
     ):
         super().__init__(name, input_keys, output_key)
         self.base_dir = base_dir
         self.from_library = from_library
-        self.params = params or []
+        self.param = param or []
         self._func = None
 
     @staticmethod
-    def from_yaml(config: dict, base_dir: str = None) -> "FunctionFromLibraryNode":
+    def from_yaml(
+        config: dict, base_dir: str, references_map: Dict[str, Any]
+    ) -> "FunctionFromLibraryNode":
         if "output_key" not in config:
             raise ValueError(f"Missing 'output_key' in config: {config.get('name')}")
 
@@ -41,7 +43,7 @@ class FunctionFromLibraryNode(FunctionNode):
             output_key=config["output_key"],
             base_dir=base_dir,
             from_library=from_lib,
-            params=config["config"].get("params", []),
+            param=config["config"].get("param", []),
         )
 
     def parse_config(self, config: dict = None, base_dir: str = None):
@@ -63,14 +65,14 @@ class FunctionFromLibraryNode(FunctionNode):
         self._func = target_func
 
     def call_target_function(self, inputs: Dict[str, Any]) -> Any:
-        # input_keys + params(list[str]) => call _func
+        # input_keys + param(list[str]) => call _func
         extra_args = {}
-        for p in self.params:
+        for p in self.param:
             if p in inputs:
                 extra_args[p] = inputs[p]
 
         # remove them from inputs if they overlap
-        for p in self.params:
+        for p in self.param:
             inputs.pop(p, None)
 
         # now call

@@ -1,0 +1,20 @@
+references:
+  - name: my_duplicate
+    type: embedding
+    config:
+      provider: openai
+      model: text-embedding-ada-002
+
+nodes:
+  - name: my_duplicate
+    type: function
+    input_keys: []
+    output_key: []
+    config:
+      function_path: "some.module:dummy_func"
+
+edges:
+  - from: START
+    to: my_duplicate
+  - from: my_duplicate
+    to: END
