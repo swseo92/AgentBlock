@@ -9,20 +9,12 @@ FunctionNode._validate_result 로직 등을 테스트할 수 있음.
 """
 
 
-def single_value_extra_func(x: int) -> dict:
-    """
-    Returns { "result": x*2, "extra": 999 } =>
-    If output_key='result', there's an unexpected key 'extra'.
-    """
-    return {"result": x * 2, "extra": 999}
-
-
 def multiple_values_func(a: int, b: int) -> dict:
     """
     Returns 3 keys: sum, diff, product.
     { "sum": a+b, "diff": a-b, "product": a*b }
     """
-    return {"sum": a + b, "diff": a - b, "product": a * b}
+    return a + b, a - b, a * b
 
 
 def partial_values_func(a: int, b: int) -> dict:
@@ -30,7 +22,7 @@ def partial_values_func(a: int, b: int) -> dict:
     Returns only 2 keys: sum, diff => missing 'product'.
     { "sum":..., "diff":... }
     """
-    return {"sum": a + b, "diff": a - b}
+    return a + b, a - b
 
 
 def error_return_non_dict(data: str):
