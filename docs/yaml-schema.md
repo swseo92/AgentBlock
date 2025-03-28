@@ -1,9 +1,12 @@
-AgentBlock YAML 스키마 (업데이트 버전)
+```markdown
+# AgentBlock YAML 스키마 (최신 버전)
 
 이 문서는 **AgentBlock** 프로젝트에서 사용하는 **YAML 스키마**를 최신화한 버전으로,  
 **비실행 노드(Embedding, VectorStore 등)는 `references` 섹션**에,  
-**실행 노드(Retriever, LLM, Function 등)는 `nodes` 섹션**에 선언함으로써 구조를 명료화하고 확장성을 높인 방식입니다.  
-또한 **비실행 노드(Reference)가 다른 Reference를 참조**할 수 있는 패턴(예: VectorStore가 Embedding 참조)도 예시로 보여줍니다.
+**실행 노드(Retriever, LLM, Function 등)는 `nodes` 섹션**에 선언함으로써 구조를 명료화하고 확장성을 높인 방식입니다.
+
+또한 **비실행 노드(Reference)가 다른 Reference를 참조**할 수도 있으며(예: VectorStore가 Embedding 참조),  
+**최상위에는 references, nodes, edges 3개 섹션**만 허용하고, **노드/레퍼런스의 config** 안에서는 **`param`** 키를 사용하도록 통일합니다.
 
 ---
 
@@ -13,14 +16,14 @@ AgentBlock YAML 스키마 (업데이트 버전)
   - LLM (예: OpenAI, HF),
   - Python 함수(Function),
   - 벡터스토어(VectorStore),
-  - 라우터(Router),
+  - 라우터(Router)
   등 다양한 컴포넌트를 연결·실행하는 **프레임워크**입니다.
 
-- 이번 스키마에서 **비실행 노드**와 **실행 노드**를 명확히 분리함으로써:
-  1. 비실행 노드는 `edges` 연결 없이도 에러가 되지 않고 (BFS 검사 제외)
-  2. 실행 노드는 `START→...→END` 경로의 단절 검사를 명확히 수행
-  3. 실행 노드가 필요로 하는 비실행 노드를 `config.references`에서 **이름**으로 참조
-  4. **레퍼런스(비실행 노드)끼리도** 내부적으로 **서로 참조**할 수 있으며, BFS 검사와 무관하게 리소스/구성 정보를 공유
+- 이번 스키마에서 다음과 같은 변화가 있었습니다:
+  1. **비실행 노드**와 **실행 노드**를 `references` / `nodes`로 분리  
+  2. **최상위 YAML에는 `references`, `nodes`, `edges`만 존재**  
+  3. **비실행 노드끼리도** 내부적으로 참조 가능 (예: VectorStore → Embedding)  
+  4. **config 내부에서는 “param” 키**로 통일해 부가 설정을 넣도록 함 (예: `param: { model: "...", ... }`)
 
 이를 통해 유지보수성을 높이고, 노드가 늘어나는 상황에도 구조적 혼란을 줄일 수 있습니다.
 
@@ -28,35 +31,36 @@ AgentBlock YAML 스키마 (업데이트 버전)
 
 ## 2. 최상위 구조
 
-새로운 스키마 최상위는 **references**, **nodes**, **edges** 3개 섹션으로 구성합니다:
+새로운 스키마의 최상위는 **references**, **nodes**, **edges** 3개 섹션만 허용하며, 다른 키가 있으면 에러가 납니다. 예:
 
 ```yaml
 references:
   # 비실행 노드 목록 (embedding, vector_store 등)
 
 nodes:
-  # 실제 BFS 경로에 놓일 실행 노드 (retriever, function, llm, router 등)
+  # 실행 노드 목록 (retriever, function, llm 등)
 
 edges:
-  # 실행 노드 간 연결 정의, START→...→END
+  # 노드 간 흐름 정의, START→...→END
 ```
 
 ### 2.1 references
 
-- **비실행 노드**(embedding, vector_store, tokenizer 등)를 선언
-- BFS와 무관하므로, `edges` 연결 없이 정의해도 에러가 발생하지 않음
-- **reference 안에서 reference**를 가질 수도 있음 (예: VectorStore가 Embedding을 참조)
+- **비실행 노드**(embedding, vector_store, tokenizer 등)  
+- BFS와 무관하므로, edges와 연결 없이 정의해도 에러 없음  
+- **서로를 참조**할 수도 있음(예: VectorStore → Embedding)
 
 ### 2.2 nodes
 
-- **실행 노드**(retriever, llm, function, router, from_yaml 등)
-- `input_keys`, `output_key`, `config` 등을 정의
-- `config.references` 필드로, 필요한 비실행 노드를 **이름**으로 참조
+- **실행 노드**(retriever, llm, function, router, from_yaml 등)  
+- `input_keys`, `output_key`, `config` 내에 설정을 담음  
+- config에서 **reference**(단수) 키를 사용해 다른 비실행 노드 이름을 참조할 수 있음  
+- 필요 시 “param”을 사용해 추가 설정을 넣을 수도 있으나(LLM 등), “params”는 허용되지 않음
 
 ### 2.3 edges
 
-- 실행 노드 간의 흐름(“START→node1→node2→END”)을 정의
-- 단절 노드, 다중 END 등을 검사
+- 노드 간의 흐름(“START→node1→node2→END”)  
+- BFS 검사에서 단절 노드, 중복 END 등 체크
 
 ---
 
@@ -64,37 +68,41 @@ edges:
 
 ### 3.1 비실행 노드 (references 섹션)
 
-#### 예시 1: Embedding
+#### 예시: Embedding
+
 ```yaml
 - name: my_embedding
   type: embedding
   config:
     provider: openai
-    model: text-embedding-ada-002
+    param:
+      model: text-embedding-ada-002
 ```
-- edges로 연결되지 않아도 OK
-- 실행 노드가 `references.embedding: "my_embedding"`으로 참조 가능
 
-#### 예시 2: VectorStore (내부에서 Embedding을 참조)
+- edges로 연결되지 않아도 OK  
+- 실행 노드가 “embedding: my_embedding” 등을 통해 참조
+
+#### 예시: VectorStore (Embedding 참조)
+
 ```yaml
 - name: my_vector_store
   type: vector_store
   config:
     provider: faiss
-    path: "faiss_index.bin"
+    param:
+      path: "faiss_index_main.bin"
     reference:
       embedding: "my_embedding"
 ```
-- 마찬가지로 edges 연관 없이 저장
-- **reference** 키를 통해 **my_embedding**을 내부적으로 참조 (BFS와 무관)
 
-여기서 VectorStore가 Embedding을 사용해 인덱스를 구성하거나 검색 로직을 수행할 때, `embedding: "my_embedding"`을 통해 연결됩니다.
-
-그 밖에 PDF Loader, Tokenizer, API Client 등도 동일한 방식으로 **references**에 추가할 수 있습니다.
+- 비실행 노드, BFS 연결 없음  
+- 내부 `reference` 키를 통해 “my_embedding”을 참조  
+- “param” 키(복수 형태 “params”는 에러 처리)로 path 등 설정
 
 ### 3.2 실행 노드 (nodes 섹션)
 
-#### 예시: Retriever (VectorStore만 참조)
+#### 예시: Retriever (VectorStore 참조)
+
 ```yaml
 - name: my_retriever
   type: retriever
@@ -102,18 +110,19 @@ edges:
     - query
   output_key: retrieved_docs
   config:
-    references:
+    reference:
       vector_store: "my_vector_store"
     search_method: "invoke"
     search_type: "similarity"
     search_kwargs:
       k: 5
 ```
-- 실제 BFS에 참여하는 **실행 노드**로서, “`query` → 유사 문서” 검색을 담당
-- `config.references` 안에 벡터스토어 이름을 명시(`my_vector_store`)
-- 벡터스토어 내부에서 이미 “embedding”을 참조하고 있을 수 있음
+
+- BFS에서 “`query` → 유사 문서” 검색  
+- 노드가 vector_store를 참조
 
 #### 예시: LLM
+
 ```yaml
 - name: default_llm
   type: llm
@@ -121,13 +130,18 @@ edges:
   output_key: "answer"
   config:
     provider: openai
-    kwargs:
-      model_name: "gpt-3.5-turbo"
+    param:
+      model_name: gpt-3.5-turbo
+      temperature: 0.3
     prompt_template: |
       You are a helpful assistant...
 ```
 
-#### 예시: Function
+- BFS에서 한 번 호출될 LLM 노드  
+- “param” 키로 model_name, temperature 등 설정
+
+#### 예시: Function (Embedding & VectorStore 참조)
+
 ```yaml
 - name: embed_and_store
   type: function
@@ -135,10 +149,12 @@ edges:
   output_key: "store_result"
   config:
     function_path: "my_module:embed_and_store_func"
-    references:
+    reference:
       embedding: "my_embedding"
       vector_store: "my_vector_store"
 ```
+
+- Python 함수 노드, BFS에서 “split_docs”를 받아서 임베딩 + 저장
 
 ---
 
@@ -148,25 +164,19 @@ edges:
 edges:
   - from: START
     to: text_splitter
-
   - from: text_splitter
     to: embed_and_store
-
   - from: embed_and_store
     to: END
 ```
 
-- **START**, **END**는 예약 노드 이름
-- RouterNode가 있을 경우 `condition` 필드로 분기 처리 가능
-- 검증 시:
-  1. 실행 노드가 모두 “START→…→END” 경로에 포함돼야 함
-  2. END 노드로의 중복 경로가 없어야 함
+- “START” / “END”는 예약어  
+- RouterNode가 있다면 `condition` 필드로 분기 가능  
+- 중복 END, 단절 노드 검사 시 BFS로 확인
 
 ---
 
-## 5. 전체 예시
-
-아래는 **references**(비실행 노드)와 **nodes**(실행 노드), 그리고 **edges**를 종합한 예시입니다:
+## 5. 예시 종합
 
 ```yaml
 references:
@@ -174,13 +184,15 @@ references:
     type: embedding
     config:
       provider: openai
-      model: text-embedding-ada-002
+      param:
+        model: text-embedding-ada-002
 
   - name: my_vector_store
     type: vector_store
     config:
       provider: faiss
-      path: "faiss_index_main.bin"
+      param:
+        path: "faiss_index_main.bin"
       reference:
         embedding: "my_embedding"
 
@@ -200,7 +212,7 @@ nodes:
     output_key: "store_result"
     config:
       function_path: "my_module:embed_and_store_func"
-      references:
+      reference:
         embedding: "my_embedding"
         vector_store: "my_vector_store"
 
@@ -213,54 +225,37 @@ edges:
     to: END
 ```
 
-1. **비실행 노드**(`my_embedding`, `my_vector_store`)는 `references` 섹션에 있음.  
-   - `my_vector_store` 내부에서 `embedding: "my_embedding"`을 참조  
-2. **실행 노드**(`text_splitter`, `embed_and_store`)는 `nodes` 섹션에 있음.  
-3. `text_splitter`와 `embed_and_store`를 edges로 연결해 BFS 수행.  
-4. `embed_and_store` 노드는 `config.references.embedding` = `"my_embedding"`, `vector_store` = `"my_vector_store"` 등을 통해 비실행 노드를 참조
+1. 비실행 노드(`my_embedding`, `my_vector_store`)는 references 섹션  
+2. 실행 노드(`text_splitter`, `embed_and_store`)는 nodes 섹션  
+3. Edge로 “START → text_splitter → embed_and_store → END” 흐름  
+4. 각 config에서 “param” 키만 허용(“params” 키는 에러)  
+5. VectorStore가 Embedding을 참조할 수도 있고, 실행 노드가 VectorStore/Embedding을 참조할 수도 있음
 
 ---
 
-## 6. 검증 로직 & 구현 포인트
+## 6. 검증 로직 & 구현
 
-1. **GraphBuilder**  
-   - `references` 섹션을 먼저 파싱해 비실행 노드를 `reference_map["my_embedding"] = EmbeddingObj...` 등으로 생성  
-   - “VectorStore → Embedding”처럼, **reference 안에 또 reference**가 있는 경우에도 순서를 맞춰 빌드  
-   - `nodes` 섹션을 파싱해 실행 노드를 빌드  
-   - `edges`를 사용해 BFS 경로 구성 → 실행 노드만 단절 검사
-
-2. **비실행 노드**  
-   - edges 연결 없음  
-   - 필요 시 “from_file” 방식(별도 YAML)도 지원 가능  
-   - 내부적으로 다른 reference(예: vector_store가 embedding을 참조) 가능
-
-3. **실행 노드에서 references**  
-   - 예:
-     ```yaml
-     config:
-       references:
-         embedding: "my_embedding"
-         vector_store: "my_vector_store"
-     ```
-   - 빌드 시점 또는 실행 시점에 `reference_map["my_embedding"]` / `reference_map["my_vector_store"]`를 찾아 객체를 주입
-
-4. **다형성**  
-   - “name vs from_file”  
-   - “embedding” vs “vector_store” vs “tokenizer” 등 다양하게 확장 가능
+1. **최상위**  
+   - “references”, “nodes”, “edges” 외의 필드가 있으면 에러  
+   - references, nodes, edges는 모두 list인지 확인
+2. **references**  
+   - 각 항목이 “type”이 비실행 노드인지(embedding, vector_store 등)  
+   - config 내부에서 “param”만 허용(“params”는 에러)
+3. **nodes**  
+   - 각 항목이 “type”이 실행 노드인지(retriever, function, llm 등)  
+   - config 내부에 “param” 사용 가능, “params” 사용 시 에러  
+   - reference(단수) 키로 다른 비실행 노드 이름을 명시 가능
+4. **edges**  
+   - “from” / “to”가 START, END 또는 존재하는 노드명인지  
+   - 중복 END, 단절 노드 검사
+5. **토폴로지 정렬**  
+   - references끼리도 의존성(embedding → vector_store) 있다면, 그래프 빌드 시 순서 정렬로 해결
 
 ---
 
 ## 7. 결론
 
-- 새 스키마에서 **비실행 노드**를 `references` 섹션으로 분리하면:
-  1. 구조가 명확해져, 실행 노드들의 BFS 검사 로직이 단순화  
-  2. 비실행 노드가 늘어나도 유지보수성이 올라감  
-  3. 실행 노드에서 간결하게 name으로 참조 가능  
-  4. 레퍼런스 간에도 자유롭게 참조(예: VectorStore → Embedding) 가능
-
-- **references** + **nodes** + **edges** 구성을 통해,  
-  - **가독성**과 **확장성**을 동시에 확보할 수 있으며,  
-  - “from_file” 등 기존 확장 기능과의 병행도 문제없음
-
-이 문서를 토대로 팀 컨벤션을 맞추고, 다양한 노드 유형을 계속 확장해 보시기 바랍니다.  
-특히 “reference 안에 reference”를 허용하면, **VectorStore, Loader** 등이 **Embedding, Tokenizer**를 자연스럽게 재사용할 수 있어, 대규모 파이프라인에서도 유연한 구성을 유지할 수 있습니다.
+- **참조(Reference) vs 실행(Node)**를 명확히 분리하면 BFS 검사 로직이 단순해지고, 비실행 노드가 늘어나도 유지보수성이 좋아집니다.  
+- **config** 내부에서 **“param”** 키만 허용해 설정을 통일하면, “params” 혼용으로 인한 혼동을 방지할 수 있습니다.  
+- 이 스키마는 대규모 파이프라인에서도 노드 간 의존관계를 직관적으로 표현하고, VectorStore나 Embedding 같은 비실행 노드의 재사용을 용이하게 해 줍니다.
+```
