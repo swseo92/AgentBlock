@@ -1,6 +1,6 @@
 nodes:
   - name: test_function
-    type: function
+    type: function_from_file
     input_keys:
       - a
       - b

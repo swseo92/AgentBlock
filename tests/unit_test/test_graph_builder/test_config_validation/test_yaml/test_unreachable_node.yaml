@@ -1,6 +1,6 @@
 nodes:
   - name: node1
-    type: function
+    type: function_from_file
     input_keys:
       - x
     output_key: y
@@ -8,7 +8,7 @@ nodes:
       function_path: mypackage.ok:some_func
 
   - name: node2
-    type: function
+    type: function_from_file
     input_keys:
       - x
     output_key: y

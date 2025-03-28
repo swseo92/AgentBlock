@@ -1,6 +1,6 @@
 nodes:
   - name: multi_val_node
-    type: function
+    type: function_from_file
     input_keys:
       - a
       - b

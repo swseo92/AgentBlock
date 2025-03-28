@@ -4,7 +4,7 @@ from typing import TypedDict, Type, Set, Any
 
 from langgraph.graph import StateGraph, START, END
 from agentblock.llm.llm_node import LLMNode
-from agentblock.function.function_node import FunctionNode
+from agentblock.function import FunctionFromFileNode
 from agentblock.retriever.retriever_node import RetrieverNode
 from agentblock.schema.tools import validate_yaml
 
@@ -12,7 +12,7 @@ from agentblock.schema.tools import validate_yaml
 # 노드 타입 매핑
 NODE_TYPE_MAP = {
     "llm": LLMNode,
-    "function": FunctionNode,
+    "function_from_file": FunctionFromFileNode,
     "from_yaml": "handled separately",  # 따로 처리
     "retriever": RetrieverNode,
 }

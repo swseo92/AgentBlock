@@ -1,6 +1,6 @@
 nodes:
   - name: node_ok
-    type: function
+    type: function_from_file
     config:
       function_path: mypackage.ok:some_func
 

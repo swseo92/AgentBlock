@@ -1,6 +1,6 @@
 nodes:
   - name: node1
-    type: function
+    type: function_from_file
     input_keys:
       - input_x
     output_key: output_y

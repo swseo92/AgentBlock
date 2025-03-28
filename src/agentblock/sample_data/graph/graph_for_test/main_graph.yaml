@@ -5,7 +5,7 @@ nodes:
       from_file: graphs/law_graph.yaml
 
   - name: merger
-    type: function
+    type: function_from_file
     input_keys:
       - law_summary
     output_key: final_answer

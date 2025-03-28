@@ -45,7 +45,7 @@ def load_function_from_path(function_path: str, base_dir: str | None = None):
     return func
 
 
-class FunctionNode(BaseNode):
+class FunctionFromFileNode(BaseNode):
     """
     - function_path: "mypackage.module:some_func" 또는 "../test_funcs.my_module:func_name"처럼
       파일 경로를 '.'로 구분해 쓰는 방식도 허용.
@@ -74,7 +74,7 @@ class FunctionNode(BaseNode):
         self._func = None  # build() 시점에 임포트
 
     @staticmethod
-    def from_yaml(config: dict, base_dir: str = None) -> "FunctionNode":
+    def from_yaml(config: dict, base_dir: str = None) -> "FunctionFromFileNode":
         """
         YAML 예시:
         - name: my_node
@@ -92,7 +92,7 @@ class FunctionNode(BaseNode):
 
         assert base_dir is not None
 
-        return FunctionNode(
+        return FunctionFromFileNode(
             name=config["name"],
             input_keys=config.get("input_keys", []),
             output_key=config["output_key"],
@@ -154,7 +154,7 @@ if __name__ == "__main__":
     path_yaml = "template_function.yaml"
     validate_yaml(path_yaml)
 
-    node_func = FunctionNode().from_yaml_file_single_node(path_yaml).build()
+    node_func = FunctionFromFileNode().from_yaml_file_single_node(path_yaml).build()
     result = node_func({"a": 1, "b": 2})
 
     result_expected = test_function(1, 2, x=1, y=2)

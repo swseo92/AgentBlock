@@ -1,6 +1,6 @@
 nodes:
   - name: single_val_extra_node
-    type: function
+    type: function_from_file
     input_keys:
       - x
     output_key: result

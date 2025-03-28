@@ -1,16 +1,16 @@
 nodes:
   - name: test_function
-    type: function_from_file
+    type: function
     input_keys:
       - a
       - b
     output_key:
       - result
     config:
-      function_path: ./test_functions:test_function_wrapper
+      from_library: calculation:some_cal
       params:
-        x: 1
-        y: 2
+        - x
+        - y
 edges:
   - from: START
     to: test_function

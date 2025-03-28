@@ -2,7 +2,7 @@ import yaml
 import collections
 from typing import Dict, List, Any, Set, Tuple
 
-EXECUTION_TYPES = {"llm", "function", "retriever", "router", "from_yaml"}
+EXECUTION_TYPES = {"llm", "function_from_file", "retriever", "router", "from_yaml"}
 NON_EXECUTION_TYPES = {"embedding", "vector_store"}
 
 

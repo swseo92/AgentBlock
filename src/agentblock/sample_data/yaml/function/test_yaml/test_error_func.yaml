@@ -1,6 +1,6 @@
 nodes:
   - name: err_node
-    type: function
+    type: function_from_file
     input_keys:
       - data
     output_key: error_value
