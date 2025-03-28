@@ -1,0 +1,22 @@
+nodes:
+  - name: legal_assistant2
+    type: llm
+    input_keys: ["query2"]
+    output_key: "answer2"
+    config:
+      provider: openai
+      args: []
+      kwargs:
+        model_name: gpt-4o-mini
+        temperature: 0.3
+        max_tokens: 512
+      prompt_template: |
+        너는 냉철한 법률 전문가야. 사용자에게 정확하고 간결한 법률 해석을 제공해.
+
+        사용자 질문: {query2}
+        답변:
+edges:
+  - from: START
+    to: legal_assistant2
+  - from: legal_assistant2
+    to: END

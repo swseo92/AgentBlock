@@ -1,0 +1,13 @@
+nodes:
+  - name: invalid_node
+    type: function
+    input_keys:
+      - x
+    config:
+      function_path: ../test_funcs/test_funcs_for_validation:single_value_func
+    # output_key is missing intentionally => from_yaml() should raise ValueError
+edges:
+  - from: START
+    to: invalid_node
+  - from: invalid_node
+    to: END

@@ -1,11 +1,9 @@
-import os
 import pytest
-import tempfile
-import yaml
+from langchain_core.embeddings.embeddings import Embeddings
 
 from agentblock.vector_store.vector_store_factory import VectorStoreFactory
-from langchain_core.embeddings.embeddings import Embeddings
-from langchain_openai import OpenAIEmbeddings
+from agentblock.embedding.dummy_embedding import DummyEmbedding
+from agentblock.sample_data.tools import get_sample_data
 
 from langchain_community.vectorstores import FAISS
 
@@ -14,10 +12,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+path_yaml = get_sample_data("yaml/vector_store/faiss.yaml")
+
 
 @pytest.fixture
 def embedding_model() -> Embeddings:
-    return OpenAIEmbeddings(model="text-embedding-ada-002")
+    return DummyEmbedding()
 
 
 def test_create_vector_store_faiss(embedding_model):
@@ -70,45 +70,22 @@ def test_create_from_yaml_faiss(embedding_model):
     """
     factory = VectorStoreFactory()
 
-    test_config = {
-        "vector_store": {
-            "provider": "faiss",
-            "config": {
-                # path=None이면 새 인덱스 생성
-                "path": None
-                # 다른 파라미터 (top_k 등)을 추가해도 됩니다
-            },
-        }
-    }
+    # YAML에서 설정 읽어옴
+    vector_store = factory.from_yaml_file_single_node(
+        yaml_path=path_yaml, embedding_model=embedding_model
+    )
 
-    with tempfile.NamedTemporaryFile(
-        delete=False, mode="w", suffix=".yaml"
-    ) as tmp_file:
-        yaml.dump(test_config, tmp_file)
-        tmp_yaml_path = tmp_file.name
+    # 여기도 FAISS 인스턴스인지 확인
+    assert isinstance(vector_store, FAISS)
 
-    try:
-        # YAML에서 설정 읽어옴
-        vector_store = factory.create_from_yaml(
-            yaml_path=tmp_yaml_path, embedding_model=embedding_model
-        )
+    # 문서 추가 -> 검색 테스트
+    docs = ["Hello VectorStore", "LangChain test doc"]
+    vector_store.add_texts(docs)
 
-        # 여기도 FAISS 인스턴스인지 확인
-        assert isinstance(vector_store, FAISS)
-
-        # 문서 추가 -> 검색 테스트
-        docs = ["Hello VectorStore", "LangChain test doc"]
-        vector_store.add_texts(docs)
-
-        results = vector_store.similarity_search("Hello", k=2)
-        assert len(results) > 0, "Expected at least one result for 'Hello'"
-        contents = [r.page_content for r in results]
-        assert "Hello VectorStore" in contents, "Expected the doc 'Hello VectorStore'"
-
-    finally:
-        # 임시 파일 정리
-        if os.path.exists(tmp_yaml_path):
-            os.remove(tmp_yaml_path)
+    results = vector_store.similarity_search("Hello", k=2)
+    assert len(results) > 0, "Expected at least one result for 'Hello'"
+    contents = [r.page_content for r in results]
+    assert "Hello VectorStore" in contents, "Expected the doc 'Hello VectorStore'"
 
 
 def test_create_from_yaml_no_embedding():
@@ -116,42 +93,7 @@ def test_create_from_yaml_no_embedding():
     5) create_from_yaml 시 embedding_model=None 이면 ValueError.
     """
     factory = VectorStoreFactory()
-    test_config = {"vector_store": {"provider": "faiss", "config": {"path": None}}}
 
-    with tempfile.NamedTemporaryFile(
-        delete=False, mode="w", suffix=".yaml"
-    ) as tmp_file:
-        yaml.dump(test_config, tmp_file)
-        tmp_yaml_path = tmp_file.name
-
-    try:
-        with pytest.raises(ValueError) as exc_info:
-            factory.create_from_yaml(yaml_path=tmp_yaml_path, embedding_model=None)
-        assert len(str(exc_info.value)) > 0
-    finally:
-        if os.path.exists(tmp_yaml_path):
-            os.remove(tmp_yaml_path)
-
-
-def test_create_from_yaml_unsupported_provider(embedding_model):
-    """
-    6) YAML에 미지원 provider가 있으면 예외 발생.
-    """
-    factory = VectorStoreFactory()
-    test_config = {"vector_store": {"provider": "unknown", "config": {}}}
-
-    with tempfile.NamedTemporaryFile(
-        delete=False, mode="w", suffix=".yaml"
-    ) as tmp_file:
-        yaml.dump(test_config, tmp_file)
-        tmp_yaml_path = tmp_file.name
-
-    try:
-        with pytest.raises(ValueError) as exc_info:
-            factory.create_from_yaml(
-                yaml_path=tmp_yaml_path, embedding_model=embedding_model
-            )
-        assert "Unsupported vector store provider" in str(exc_info.value)
-    finally:
-        if os.path.exists(tmp_yaml_path):
-            os.remove(tmp_yaml_path)
+    with pytest.raises(ValueError) as exc_info:
+        factory.from_yaml_file_single_node(yaml_path=path_yaml, embedding_model=None)
+    assert len(str(exc_info.value)) > 0

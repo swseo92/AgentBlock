@@ -1,5 +1,0 @@
-# embedding.yaml
-embedding:
-  provider: openai
-  model: text-embedding-ada-002
-    # 기타 필요한 파라미터

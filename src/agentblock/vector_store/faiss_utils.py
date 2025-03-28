@@ -1,3 +1,4 @@
+import os
 import faiss
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
@@ -16,7 +17,7 @@ def create_faiss_vector_store(embedding_model: Embeddings, path: str = None, **k
     vector_dim = len(embedding_model.embed_query("hello"))
     index = faiss.IndexFlatL2(vector_dim)
 
-    if path is not None:
+    if path is not None and os.path.exists(path):
         # 기존 인덱스를 로드하는 경우
         vector_store = FAISS.load_local(
             path,
@@ -32,5 +33,8 @@ def create_faiss_vector_store(embedding_model: Embeddings, path: str = None, **k
             index_to_docstore_id={},
             **kwargs,
         )
+
+    vector_store.save = lambda: vector_store.save_local(path)
+    vector_store._path_save = path
 
     return vector_store

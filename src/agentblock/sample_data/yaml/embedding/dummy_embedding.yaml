@@ -1,0 +1,6 @@
+nodes:
+  - name: dummy_embedding
+    type: embedding
+    config:
+      provider: dummy
+      dimension: 5

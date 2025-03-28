@@ -1,10 +1,11 @@
 nodes:
   - name: valid_node
     type: function
-    function_path: mypackage.some_module:some_func
     input_keys:
       - my_input
     output_key: a
+    config:
+      function_path: mypackage.some_module:some_func
 edges:
   - from: START
     to: valid_node

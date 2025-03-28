@@ -1,0 +1,14 @@
+nodes:
+  - name: wrapped_node
+    type: function
+    input_keys:
+      - x
+      - y
+    output_key: wrapped_result  # 단일 키
+    config:
+      function_path: ../test_funcs/wrappers:wrapped_int_function
+edges:
+  - from: START
+    to: wrapped_node
+  - from: wrapped_node
+    to: END

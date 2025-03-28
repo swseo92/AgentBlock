@@ -1,0 +1,21 @@
+nodes:
+  - name: law_pipeline
+    type: from_yaml
+    config:
+      from_file: graphs/law_graph.yaml
+
+  - name: merger
+    type: function
+    input_keys:
+      - law_summary
+    output_key: final_answer
+    config:
+      function_path: functions.merge:merge_final
+
+edges:
+  - from: START
+    to: law_pipeline
+  - from: law_pipeline
+    to: merger
+  - from: merger
+    to: END

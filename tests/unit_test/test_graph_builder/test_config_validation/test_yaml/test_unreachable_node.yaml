@@ -1,17 +1,19 @@
 nodes:
   - name: node1
     type: function
-    function_path: mypackage.ok:some_func
     input_keys:
       - x
     output_key: y
+    config:
+      function_path: mypackage.ok:some_func
 
   - name: node2
     type: function
-    function_path: mypackage.ok:some_func
     input_keys:
       - x
     output_key: y
+    config:
+      function_path: mypackage.ok:some_func
 
 edges:
   - from: START

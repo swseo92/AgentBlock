@@ -1,0 +1,18 @@
+nodes:
+  - name: partial_val_node
+    type: function
+    input_keys:
+      - a
+      - b
+    output_key:
+      - sum
+      - diff
+      - product
+    config:
+      function_path: ../test_funcs/test_funcs_for_validation:partial_values_func
+
+edges:
+  - from: START
+    to: partial_val_node
+  - from: partial_val_node
+    to: END

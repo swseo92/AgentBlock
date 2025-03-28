@@ -1,0 +1,18 @@
+nodes:
+  - name: multi_val_node
+    type: function
+    input_keys:
+      - a
+      - b
+    output_key:  # 복수 키가 필요하면 리스트로
+      - sum
+      - diff
+      - product
+    config:
+      function_path: ../test_funcs/multiple_values:multiple_values_func
+
+edges:
+  - from: START
+    to: multi_val_node
+  - from: multi_val_node
+    to: END

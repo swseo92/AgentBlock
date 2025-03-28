@@ -1,0 +1,20 @@
+nodes:
+  - name: summarizer
+    type: llm
+    input_keys: [ "law_response" ]
+    output_key: law_summary
+    config:
+      provider: openai
+      args: []
+      kwargs:
+        model_name: gpt-4o-mini
+        temperature: 0.2
+      prompt_template: |
+        다음의 법률 답변을 간단히 요약해줘:
+        {law_response}
+
+edges:
+  - from: START
+    to: summarizer
+  - from: summarizer
+    to: END

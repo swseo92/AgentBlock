@@ -1,0 +1,21 @@
+nodes:
+  - name: my_retriever
+    type: retriever
+    input_keys:
+      - query
+    output_key: retrieved_docs
+    config:
+      embedding:
+        from_file: "../embedding/dummy_embedding.yaml"
+      vector_store:
+        from_file: "../vector_store/faiss.yaml"
+      search_method: "invoke"
+      search_type: "similarity"
+      search_kwargs:
+        k: 5
+
+edges:
+  - from: START
+    to: my_retriever
+  - from: my_retriever
+    to: END

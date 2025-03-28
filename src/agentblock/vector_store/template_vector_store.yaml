@@ -1,5 +1,5 @@
-vector_store:
-  provider: faiss
-  config:
-    path: "path/to/faiss_index.bin"
-    # top_k, docstore, 기타 FAISS or Pinecone 설정
+nodes:
+  - name: my_faiss
+    type: vector_store
+    config:
+      provider: faiss

@@ -1,0 +1,20 @@
+nodes:
+  - name: llm_legal
+    type: llm
+    input_keys: [ "query" ]
+    output_key: law_response
+    config:
+      provider: openai
+      args: []
+      kwargs:
+        model_name: gpt-4o-mini
+        temperature: 0.3
+      prompt_template: |
+        너는 법률 전문가야. 사용자의 질문에 간결하고 정확하게 답변해.
+        질문: {query}
+        답변:
+edges:
+  - from: START
+    to: llm_legal
+  - from: llm_legal
+    to: END
