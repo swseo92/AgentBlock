@@ -1,10 +1,10 @@
 references:
-  - name: openai_embedding
+  - name: dummy_emb
     type: embedding
     config:
-      provider: openai
+      provider: dummy
       param:
-        model: text-embedding-ada-002
+        dimension: 5
 
   - name: my_faiss
     type: vector_store
@@ -13,4 +13,4 @@ references:
       param:
         path: test.faiss
       reference:
-        embedding: openai_embedding
+        embedding: dummy_emb

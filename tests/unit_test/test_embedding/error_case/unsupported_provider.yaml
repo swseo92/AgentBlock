@@ -1,8 +1,0 @@
-nodes:
-  - name: nonexistent
-    type: embedding
-    config:
-      provider: nonexistent
-      model: some-model
-
-edges: []

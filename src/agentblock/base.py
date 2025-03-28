@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Any
 
 
 from abc import ABC, abstractmethod
@@ -11,7 +11,7 @@ class BaseComponent(ABC):
     @staticmethod
     @abstractmethod
     def from_yaml(
-        config: dict, base_dir: str, references_map: Dict[str, "BaseReference"]
+        config: dict, base_dir: str, references_map: Dict[str, Any]
     ) -> "BaseComponent":
         pass
 
@@ -28,9 +28,7 @@ class BaseNode(BaseComponent):
 
     @staticmethod
     @abstractmethod
-    def from_yaml(
-        config: dict, base_dir, references_map: Dict[str, "BaseReference"]
-    ) -> "BaseNode":
+    def from_yaml(config: dict, base_dir, references_map: Dict[str, Any]) -> "BaseNode":
         pass
 
     @abstractmethod
@@ -52,7 +50,7 @@ class BaseReference(BaseComponent):
     @staticmethod
     @abstractmethod
     def from_yaml(
-        config: dict, base_dir, references_map: Dict[str, "BaseReference"]
+        config: dict, base_dir, references_map: Dict[str, Any]
     ) -> "BaseReference":
         pass
 

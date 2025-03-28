@@ -35,7 +35,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:sum_cal"
-      params: []
+      param: []
 
 edges:
   - from: START
@@ -74,7 +74,7 @@ nodes:
     output_key: result
     config:
       from_library: "not_exist:sum_cal"
-      params: []
+      param: []
 edges:
   - from: START
     to: sum_cal_node
@@ -107,7 +107,7 @@ nodes:
     output_key: [sum, diff, product, quotient]
     config:
       from_library: "some_library:multi_ops"
-      params: []
+      param: []
 edges:
   - from: START
     to: multi_ops_node
@@ -151,7 +151,7 @@ nodes:
     output_key: [sum, product, difference]  # 3개 키
     config:
       from_library: "some_library:short_ops"
-      params: []
+      param: []
 edges:
   - from: START
     to: short_ops_node
@@ -195,7 +195,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:debug_sum"
-      params: ["x"]   # x를 다시 param에 명시
+      param: ["x"]   # x를 다시 param에 명시
 edges:
   - from: START
     to: debug_sum_node
@@ -236,7 +236,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:risky_div"
-      params: []
+      param: []
 edges:
   - from: START
     to: div_node
@@ -275,7 +275,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:none_func"
-      params: []
+      param: []
 edges:
   - from: START
     to: none_node
@@ -312,7 +312,7 @@ nodes:
     output_key: result
     config:
       from_library: "some_library:sum_cal"
-      params: ["x","y"]  # state에 x,y가 없을 때 => x=0,y=0?
+      param: ["x","y"]  # state에 x,y가 없을 때 => x=0,y=0?
 edges:
   - from: START
     to: sum_node

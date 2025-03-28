@@ -33,6 +33,40 @@ def load_yaml(yaml_path: str) -> Dict[str, Any]:
     return data
 
 
+def validate_top_level_structure(data: dict) -> None:
+    """
+    data는 YAML을 로드한 후의 최상위 dict.
+    - references, nodes, edges 이외의 필드가 있으면 에러
+    - references, nodes, edges 중 누락된 필드도 에러(선택적)
+      (프로젝트에서 references/nodes/edges가 필수인지 여부에 따라 다르게 처리)
+    """
+
+    # 1) 허용되는 필드 지정
+    allowed_keys = {"references", "nodes", "edges"}
+
+    # 2) 실제 필드 set
+    actual_keys = set(data.keys())
+
+    # 3) 불필요한 필드 검사
+    extra_keys = actual_keys - allowed_keys
+    if extra_keys:
+        raise ValueError(
+            f"최상위에서 허용되지 않은 필드가 발견되었습니다: {extra_keys}. " f"허용 필드: {allowed_keys}"
+        )
+
+    # 5) 타입 검사
+    #   references는 list, nodes는 list, edges는 list인지(프로젝트 설계에 따라 달라질 수 있음)
+    #   여기서는 예시로 references/nodes/edges를 list로 가정
+    if not isinstance(data.get("references", []), list):
+        raise ValueError("'references' 필드는 list 형식이어야 합니다.")
+    if not isinstance(data.get("nodes", []), list):
+        raise ValueError("'nodes' 필드는 list 형식이어야 합니다.")
+    if not isinstance(data.get("edges", []), list):
+        raise ValueError("'edges' 필드는 list 형식이어야 합니다.")
+
+    # 여기까지 통과하면 최상위 구조는 references, nodes, edges만 있고, 타입도 맞음.
+
+
 def validate_references(refs: List[Any]) -> Tuple[List[Dict[str, Any]], Set[str]]:
     """
     references 섹션(비실행 노드 목록)에 대해 유효성 검사:
@@ -288,6 +322,44 @@ def validate_from_yaml_node(node: dict):
         raise ValueError("from_yaml node must have 'from_file'")
 
 
+def validate_config_param_key(data: dict, unify_key: str = "param"):
+    """
+    references와 nodes 섹션을 순회하며,
+    각 항목의 config에 'params'가 발견되면 에러.
+    'param'만 허용.
+    만약 'param'마저 누락 시 에러로 볼지 여부는 하단 주석 참고.
+
+    unify_key: 최종 허용 키 (기본 "param")
+    """
+
+    references = data.get("references", [])
+    for ref_def in references:
+        cfg = ref_def.get("config", {})
+        check_param_key(cfg, unify_key, is_reference=True, name=ref_def.get("name"))
+
+    nodes = data.get("nodes", [])
+    for node_def in nodes:
+        cfg = node_def.get("config", {})
+        check_param_key(cfg, unify_key, is_reference=False, name=node_def.get("name"))
+
+
+def check_param_key(cfg: dict, unify_key: str, is_reference: bool, name: str):
+    """
+    cfg: 해당 레퍼런스/노드의 config dict
+    unify_key: "param" 등 허용된 키
+    is_reference: True면 references 섹션, False면 nodes 섹션
+    name: 레퍼런스나 노드 이름 (에러 메시지용)
+    """
+    has_params = "params" in cfg
+
+    # 'params'가 있으면 에러
+    if has_params:
+        raise ValueError(
+            f"{'Reference' if is_reference else 'Node'} '{name}'의 config에 "
+            f"'params' 키가 발견되었습니다. '{unify_key}'로 통일해야 합니다."
+        )
+
+
 def validate_yaml(yaml_path: str) -> None:
     """
     references + nodes + edges 구조를 반영한 validate 함수.
@@ -299,6 +371,8 @@ def validate_yaml(yaml_path: str) -> None:
     5) BFS 검사(실행 노드만)
     """
     data = load_yaml(yaml_path)
+    # top level에 references, nodes, edges 외의 구조가 존재하는지 검증
+    validate_top_level_structure(data)
 
     # references가 없으면 빈 리스트
     references = data.get("references", [])
@@ -331,6 +405,9 @@ def validate_yaml(yaml_path: str) -> None:
             # 혹시 edges가 있으면 엄격 모드로는 에러 처리 가능. 여기선 warning 취급 가능.
             pass
         return
+
+    # 4) 내부 파라미터 키 검사
+    validate_config_param_key(data)
 
     has_start_edge, has_end_edge = validate_edges(edges, node_names)
     if not has_start_edge:

@@ -25,7 +25,7 @@ def test_from_yaml():
 
     assert node.name == "legal_assistant"
     assert node.provider == "openai"
-    assert node.kwargs["model_name"] == "gpt-4o-mini"
+    assert node.param["model_name"] == "gpt-4o-mini"
     assert "query" in node.input_keys
     assert node.output_key == "answer"
 

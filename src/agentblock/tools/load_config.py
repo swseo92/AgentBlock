@@ -19,17 +19,3 @@ def get_abspath(path: str, base_dir: str) -> str:
 
 def get_parent_dir_abspath(file_path: str) -> str:
     return str(Path(file_path).resolve().parent)
-
-
-def get_yaml_for_single_node_file(yaml_path):
-    config_data = load_config(yaml_path)
-
-    assert len(config_data["nodes"]) == 1
-    return config_data["nodes"][0]
-
-
-def get_yaml_for_single_reference_file(yaml_path):
-    config_data = load_config(yaml_path)
-
-    assert len(config_data["reference"]) == 1
-    return config_data["reference"][0]
