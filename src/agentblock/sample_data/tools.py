@@ -20,5 +20,6 @@ def get_sample_data(relative_path: str) -> str:
         raise FileNotFoundError(f"Sample data file not found: '{absolute_path}'")
 
     # 5) 유효성 검사
-    validate_yaml(absolute_path)
+    if absolute_path.split(".")[-1] == "yaml":
+        validate_yaml(absolute_path)
     return absolute_path

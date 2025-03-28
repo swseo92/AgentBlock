@@ -1,0 +1,14 @@
+nodes:
+  - name: pdf_loader_node
+    type: data_loader
+    input_keys:
+      - file_path
+    output_key: pdf_documents
+    config:
+      loader_kind: pdf_loader
+
+edges:
+  - from: START
+    to: pdf_loader_node
+  - from: pdf_loader_node
+    to: END
