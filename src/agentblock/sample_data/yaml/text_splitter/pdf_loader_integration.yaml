@@ -1,0 +1,28 @@
+nodes:
+  - name: pdf_loader_node
+    type: data_loader
+    input_keys:
+      - file_path
+    output_key: documents
+    config:
+      loader_kind: "pdf_loader"
+
+  - name: text_splitter
+    type: function_from_library
+    input_keys:
+      - documents
+    output_key: split_docs
+    config:
+      from_library: "agentblock.preprocessing.text_splitter:character_text_split"
+      chunk_size: 500
+      chunk_overlap: 50
+
+edges:
+  - from: START
+    to: pdf_loader_node
+
+  - from: pdf_loader_node
+    to: text_splitter
+
+  - from: text_splitter
+    to: END

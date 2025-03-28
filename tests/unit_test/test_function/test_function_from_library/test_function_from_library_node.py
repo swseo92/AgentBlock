@@ -1,5 +1,12 @@
 import pytest
+import shutil
+import sys
 from agentblock.graph_builder import GraphBuilder
+from agentblock.sample_data.tools import get_sample_data
+
+path_library = get_sample_data(
+    "yaml/function/function_from_file/test_funcs/some_library.py"
+)
 
 
 def test_function_from_library_yaml(tmp_path):
@@ -11,12 +18,9 @@ def test_function_from_library_yaml(tmp_path):
     """
 
     # 1) 임시 파일 생성: some_library.py
-    library_code = """
-def sum_cal(a, b, x=0, y=0):
-    return a + b + x + y
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     # 2) 임시 파일 생성: function_from_library_test.yaml
     yaml_text = """\
@@ -30,7 +34,7 @@ nodes:
       - y
     output_key: result
     config:
-      from_library: "./some_library:sum_cal"
+      from_library: "some_library:sum_cal"
       params: []
 
 edges:
@@ -69,7 +73,7 @@ nodes:
     input_keys: [a, b]
     output_key: result
     config:
-      from_library: "./not_exist:sum_cal"
+      from_library: "not_exist:sum_cal"
       params: []
 edges:
   - from: START
@@ -82,7 +86,7 @@ edges:
 
     builder = GraphBuilder(str(yaml_file))
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ModuleNotFoundError):
         _ = builder.build_graph()
 
 
@@ -91,18 +95,9 @@ def test_multiple_output_with_params(tmp_path):
     (a, b, x, y)로 계산하여 (합, 차이, 곱, 나눗셈) 등 다양한 결과를 tuple로 반환.
     output_key가 여러 개인 경우.
     """
-    library_code = r"""
-def multi_ops(a, b, x=0, y=0):
-    # 예: (합, 차, 곱, 몫)
-    s = a + b + x + y
-    d = a - b
-    mul = a*b + x*y
-    # b==0 시 나눗셈 예외 가능 => 단순 처리
-    div = a/b if b != 0 else None
-    return (s, d, mul, div)
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -111,7 +106,7 @@ nodes:
     input_keys: [a, b, x, y]
     output_key: [sum, diff, product, quotient]
     config:
-      from_library: "./some_library:multi_ops"
+      from_library: "some_library:multi_ops"
       params: []
 edges:
   - from: START
@@ -143,12 +138,10 @@ def test_multiple_output_length_mismatch(tmp_path):
     라이브러리 함수가 2개 요소의 tuple을 반환하지만,
     output_key를 3개로 선언해 길이 불일치 -> ValueError 예상
     """
-    library_code = r"""
-def short_ops(a, b):
-    return (a+b, a*b)
-"""
+
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -157,7 +150,7 @@ nodes:
     input_keys: [a, b]
     output_key: [sum, product, difference]  # 3개 키
     config:
-      from_library: "./some_library:short_ops"
+      from_library: "some_library:short_ops"
       params: []
 edges:
   - from: START
@@ -190,12 +183,9 @@ def test_params_override_input_keys(tmp_path):
     여기서는 'x'를 input_keys에도 넣고, params에도 넣어서,
     실제 호출에 어떤 값이 넘어가는지 확인할 수 있음.
     """
-    library_code = r"""
-def debug_sum(a, x=0):
-    return a + x
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -204,7 +194,7 @@ nodes:
     input_keys: [a, x]
     output_key: result
     config:
-      from_library: "./some_library:debug_sum"
+      from_library: "some_library:debug_sum"
       params: ["x"]   # x를 다시 param에 명시
 edges:
   - from: START
@@ -234,12 +224,9 @@ def test_function_throws_exception(tmp_path):
     라이브러리 함수 내부에서 ZeroDivisionError 등이 발생하는 시나리오.
     Node가 그대로 예외를 전파하면, graph.invoke()에서 해당 예외가 발생해야 함.
     """
-    library_code = r"""
-def risky_div(a, b):
-    return a / b  # b=0 => ZeroDivisionError
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -248,7 +235,7 @@ nodes:
     input_keys: [a, b]
     output_key: result
     config:
-      from_library: "./some_library:risky_div"
+      from_library: "some_library:risky_div"
       params: []
 edges:
   - from: START
@@ -276,13 +263,9 @@ def test_function_returns_none(tmp_path):
     라이브러리 함수가 None을 반환할 경우,
     output_key: "result"에 {result: None}로 담길지 확인
     """
-    library_code = r"""
-def none_func(a, b):
-    # 단순히 None 반환
-    return None
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -291,7 +274,7 @@ nodes:
     input_keys: [a, b]
     output_key: result
     config:
-      from_library: "./some_library:none_func"
+      from_library: "some_library:none_func"
       params: []
 edges:
   - from: START
@@ -317,12 +300,9 @@ def test_function_params_not_in_state(tmp_path):
     config.params에 명시된 'x','y'가 state에 없어도 오류 없이 동작해야 하는지,
     또는 key error를 일으켜야 하는지 확인.
     """
-    library_code = """
-def sum_cal(a, b, x=0, y=0):
-    return a + b + x + y
-"""
     lib_file = tmp_path / "some_library.py"
-    lib_file.write_text(library_code, encoding="utf-8")
+    shutil.copyfile(path_library, lib_file)
+    sys.path.append(str(tmp_path))
 
     yaml_text = """\
 nodes:
@@ -331,7 +311,7 @@ nodes:
     input_keys: [a, b]
     output_key: result
     config:
-      from_library: "./some_library:sum_cal"
+      from_library: "some_library:sum_cal"
       params: ["x","y"]  # state에 x,y가 없을 때 => x=0,y=0?
 edges:
   - from: START

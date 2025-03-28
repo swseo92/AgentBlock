@@ -1,10 +1,8 @@
 from typing import Any, Dict, List, Union
-import os
 import importlib
 import importlib.util
 
 from agentblock.function.base import FunctionNode
-from agentblock.tools.load_config import get_abspath
 
 
 class FunctionFromLibraryNode(FunctionNode):
@@ -56,24 +54,11 @@ class FunctionFromLibraryNode(FunctionNode):
 
         mod_part, func_name = self.from_library.split(":", 1)
 
-        abs_path = get_abspath(mod_part, self.base_dir).replace(".", "/")
-        mod_file = os.path.abspath(abs_path + ".py")
-        if not os.path.isfile(mod_file):
-            raise FileNotFoundError(f"Cannot find python file: {mod_file}")
-
-        spec = importlib.util.spec_from_file_location("temp_lib_module", mod_file)
-        if not spec or not spec.loader:
-            raise ImportError(f"Failed to create spec for {mod_file}")
-
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        if not hasattr(module, func_name):
-            raise AttributeError(f"Module {mod_file} has no attribute '{func_name}'")
+        module = importlib.import_module(mod_part)
         target_func = getattr(module, func_name)
 
         if not callable(target_func):
-            raise TypeError(f"'{func_name}' is not callable in {mod_file}")
+            raise TypeError(f"'{func_name}' is not callable in {mod_part}")
 
         self._func = target_func
 
