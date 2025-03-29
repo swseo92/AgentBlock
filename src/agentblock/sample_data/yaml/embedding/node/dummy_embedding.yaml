@@ -1,0 +1,24 @@
+references:
+  - name: dummy_embedding_reference
+    type: embedding
+    config:
+      provider: dummy
+      param:
+        dimension: 5
+
+nodes:
+  - name: my_embedding_node
+    type: embedding_node
+    input_keys: ["raw_docs"]
+    output_key: "embedded_docs"
+    config:
+      param:
+        method: embed_query
+      reference:
+        embedding: dummy_embedding_reference
+
+edges:
+  - from: START
+    to: my_embedding_node
+  - from: my_embedding_node
+    to: END
