@@ -21,7 +21,7 @@ class AbstractDataLoaderNode(abc.ABC):
     def load_data(self, inputs: Dict[str, Any]) -> List[Document]:
         pass
 
-    def invoke(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    def invoke(self, state: Dict[str, Any]) -> Dict[str, List[Document]]:
         loader_inputs = {key: state.get(key) for key in self.input_keys}
         documents = self.load_data(loader_inputs)
         state[self.output_key] = documents
@@ -50,6 +50,7 @@ class GenericLoaderNode(AbstractDataLoaderNode):
 
         # 로더 함수에 inputs, args, kwargs를 전달
         # => loader_func(inputs, *args, **kwargs)
+        # text 외에 필요한 메타데이터가 있다면 loader_func 내부에서 langchain Document 객체 내부에 삽입
         return loader_func(inputs, *args, **kwargs)
 
     @staticmethod

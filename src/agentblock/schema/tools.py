@@ -12,6 +12,7 @@ EXECUTION_TYPES = {
     "from_yaml",
     "data_loader",
     "function",  # 만약 'type: function'을 쓴다면 여기 추가
+    "embedding_node",
 }
 NON_EXECUTION_TYPES = {
     "embedding",

@@ -19,6 +19,7 @@ class FunctionNode(BaseNode, ABC):
         super().__init__(name)
         self.input_keys = input_keys
         self.output_key = output_key
+        self._func = None
 
     @abstractmethod
     def parse_config(self, config: dict, base_dir: str = None):
