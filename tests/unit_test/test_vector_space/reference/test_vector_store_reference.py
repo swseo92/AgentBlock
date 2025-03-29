@@ -8,7 +8,7 @@ from agentblock.tools.load_config import load_config
 
 @pytest.fixture
 def faiss_yaml_path():
-    path = get_sample_data("yaml/vector_store/faiss_test.yaml")
+    path = get_sample_data("yaml/vector_store/reference/faiss_test.yaml")
     return path
 
 
@@ -30,7 +30,7 @@ def test_vector_store_reference_faiss(faiss_yaml_path, tmp_path):
     for ref_def in ref_list:
         if ref_def["type"] == "embedding":
             # EmbeddingReference.from_yaml -> build
-            emb_ref = EmbeddingReference.from_yaml(ref_def, ".", {})
+            emb_ref = EmbeddingReference.from_yaml(ref_def, "..", {})
             embedding_obj = emb_ref.build()
             # reference_map에는 이미 build된 Embeddings 객체를 저장
             references_map[ref_def["name"]] = embedding_obj
@@ -40,7 +40,7 @@ def test_vector_store_reference_faiss(faiss_yaml_path, tmp_path):
     for ref_def in ref_list:
         if ref_def["type"] == "vector_store":
             # VectorStoreReference.from_yaml( ... references_map=... )
-            vs_ref = VectorStoreReference.from_yaml(ref_def, ".", references_map)
+            vs_ref = VectorStoreReference.from_yaml(ref_def, "..", references_map)
             # build() -> LangChain VectorStore
             vs_obj = vs_ref.build()
             assert vs_obj is not None, "Failed to build FAISS VectorStore"

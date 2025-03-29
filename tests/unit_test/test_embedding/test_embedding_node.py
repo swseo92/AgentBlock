@@ -46,7 +46,7 @@ def test_embedding_node_with_list_of_documents():
     with pytest.raises(ValueError):
         node3.build()(state)
 
-    list_embedding = result["embedded_docs"]
+    list_embedding = result["embedded_docs"][1]
     # 결과 검증: docs에 임베딩 벡터가 추가되었는지 확인
     assert list_embedding[0] == [0.1, 0.1, 0.1, 0.1, 0.1]
     assert list_embedding[1] == [0.1, 0.1, 0.1, 0.1, 0.1]
@@ -67,7 +67,7 @@ def test_embedding_node_with_single_document():
     result = node_fn(state)
 
     # 결과 검증: docs에 임베딩 벡터가 추가되었는지 확인
-    assert result["embedded_docs"][0] == [0.1, 0.1, 0.1, 0.1, 0.1]
+    assert result["embedded_docs"][1][0] == [0.1, 0.1, 0.1, 0.1, 0.1]
 
 
 def test_invalid_method():

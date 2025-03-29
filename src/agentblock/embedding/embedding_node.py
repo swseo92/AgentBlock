@@ -81,4 +81,4 @@ class EmbeddingNode(FunctionNode):
             embedding_vectors = self._func([doc.page_content for doc in docs])
         else:
             raise ValueError(f"Unsupported method signature: {method_signature}")
-        return embedding_vectors
+        return (docs, embedding_vectors)
