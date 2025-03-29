@@ -9,10 +9,10 @@ from agentblock.function.function_from_file_node import FunctionFromFileNode
 from agentblock.function.function_from_library_node import FunctionFromLibraryNode
 from agentblock.retriever.retriever_node import RetrieverNode
 from agentblock.data_loader.base import GenericLoaderNode
+from agentblock.vector_store.data_saver_node import DataSaverNode
 
 from agentblock.embedding.embedding_reference import EmbeddingReference
 from agentblock.vector_store.vector_store_reference import VectorStoreReference
-
 from agentblock.schema.tools import validate_yaml
 
 # 실행 노드 타입 매핑
@@ -23,6 +23,7 @@ NODE_TYPE_MAP = {
     "from_yaml": "handled separately",
     "retriever": RetrieverNode,
     "data_loader": GenericLoaderNode,
+    "data_saver": DataSaverNode
     # 필요하면 "router" 등 다른 실행 노드 추가
 }
 
