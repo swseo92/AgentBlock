@@ -73,27 +73,20 @@ class DataSaverNode(FunctionNode):
         - 저장 후, 저장된 문서 수와 상태 정보를 반환합니다.
         """
         # 입력에서 "documents" 키의 데이터를 가져옵니다.
-        docs_input = inputs.get("documents")
-        if docs_input is None:
-            raise ValueError("Input 'documents' is required.")
+        # 문서 리스트 가져오기
+        docs = list()
+        for docs_each in inputs.values():
+            docs.extend(docs_each)
 
-        # 입력이 리스트가 아니라면 리스트로 변환합니다.
-        if not isinstance(docs_input, list):
-            docs_input = [docs_input]
+        if len(docs) == 0:
+            raise ValueError("No documents to save.")
 
-        docs = []
-        # 각 항목을 Document 객체로 변환합니다.
-        for item in docs_input:
-            if isinstance(item, Document):
-                docs.append(item)
-            elif isinstance(item, str):
-                docs.append(Document(page_content=item))
-            else:
+        for doc in docs:
+            if not isinstance(doc, Document):
                 raise ValueError(
-                    "Each document must be a string or a Document instance."
+                    f"The inputs must be an instance of Document, got {type(doc)}"
                 )
 
-        # 벡터 스토어 인스턴스인지 확인하고 문서를 저장합니다.
         if isinstance(self.reference, VectorStore):
             self.reference.add_documents(docs)
             # 저장 후, 상태와 저장된 문서 수를 반환합니다.

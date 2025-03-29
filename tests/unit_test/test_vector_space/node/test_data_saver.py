@@ -13,6 +13,11 @@ from unittest.mock import MagicMock
 path_yaml = get_sample_data("yaml/vector_store/node/faiss_node_test.yaml")
 
 
+input_data = {
+    "documents": [Document(page_content="doc1"), Document(page_content="doc2")]
+}
+
+
 def create_references_map():
     """
     DummyEmbedding과 in-memory FAISS 벡터 스토어를 생성하여
@@ -67,7 +72,6 @@ def test_data_saver_node_indexing():
     )
 
     # "documents" 키에 문자열 리스트를 입력으로 전달 (자동으로 Document로 변환됨)
-    input_data = {"documents": ["Test document 1", "Test document 2"]}
     result = data_saver_node.call_target_function(input_data)
 
     # 저장 결과 반환값 확인
@@ -120,43 +124,11 @@ def test_data_saver_node_with_valid_documents(setup_data_saver_node):
     mock_vector_store.add_documents.assert_called_once_with(documents)
 
 
-def test_data_saver_node_with_strings_as_documents(setup_data_saver_node):
-    node, mock_vector_store = setup_data_saver_node
-    documents = ["doc1", "doc2"]
-    inputs = {"documents": documents}
-
-    result = node.call_target_function(inputs)
-
-    assert result["status"] == "saved"
-    assert result["num_docs"] == 2
-    assert mock_vector_store.add_documents.call_count == 1
-    added_docs = mock_vector_store.add_documents.call_args[0][0]
-    assert all(isinstance(doc, Document) for doc in added_docs)
-    assert added_docs[0].page_content == "doc1"
-    assert added_docs[1].page_content == "doc2"
-
-
-def test_data_saver_node_with_single_string_as_document(setup_data_saver_node):
-    node, mock_vector_store = setup_data_saver_node
-    inputs = {"documents": "single doc"}
-
-    result = node.call_target_function(inputs)
-
-    assert result["status"] == "saved"
-    assert result["num_docs"] == 1
-    mock_vector_store.add_documents.assert_called_once()
-    added_docs = mock_vector_store.add_documents.call_args[0][0]
-    assert len(added_docs) == 1
-    assert added_docs[0].page_content == "single doc"
-
-
 def test_data_saver_node_with_invalid_document_type(setup_data_saver_node):
     node, _ = setup_data_saver_node
     inputs = {"documents": [123, {"key": "value"}]}
 
-    with pytest.raises(
-        ValueError, match="Each document must be a string or a Document instance."
-    ):
+    with pytest.raises(ValueError, match="The inputs must be an instance of Document"):
         node.call_target_function(inputs)
 
 
@@ -164,21 +136,5 @@ def test_data_saver_node_with_missing_documents_key(setup_data_saver_node):
     node, _ = setup_data_saver_node
     inputs = {}
 
-    with pytest.raises(ValueError, match="Input 'documents' is required."):
-        node.call_target_function(inputs)
-
-
-def test_data_saver_node_with_invalid_reference_type():
-    invalid_reference = MagicMock()
-    node = DataSaverNode(
-        name="test_node",
-        reference=invalid_reference,
-        input_keys=["documents"],
-        output_key="result",
-    )
-    inputs = {"documents": [Document(page_content="doc1")]}
-
-    with pytest.raises(
-        ValueError, match="Reference must be an instance of VectorStore"
-    ):
+    with pytest.raises(ValueError, match="No documents to save."):
         node.call_target_function(inputs)

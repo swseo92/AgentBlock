@@ -1,3 +1,4 @@
+from langchain.schema import Document
 from agentblock.graph_builder import GraphBuilder
 from agentblock.sample_data.tools import get_sample_data
 
@@ -16,7 +17,7 @@ def test_graph_builder_integration(tmp_path):
     graph = builder.build_graph()
 
     # 입력 state 준비: "documents" 키에 단일 문서 입력
-    state = {"documents": ["Integration test document."]}
+    state = {"documents": [Document(page_content="doc1")]}
 
     # 그래프 실행: 노드들을 순차적으로 실행하여 최종 state를 반환합니다.
     result_state = graph.invoke(state)

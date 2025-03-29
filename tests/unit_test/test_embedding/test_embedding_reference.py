@@ -10,13 +10,13 @@ from agentblock.tools.load_config import load_config
 
 @pytest.fixture
 def dummy_yaml_path():
-    path = get_sample_data("yaml/embedding/dummy_embedding.yaml")
+    path = get_sample_data("yaml/embedding/reference/dummy_embedding.yaml")
     return path
 
 
 @pytest.fixture
 def openai_yaml_path():
-    path = get_sample_data("yaml/embedding/openai_embedding.yaml")
+    path = get_sample_data("yaml/embedding/reference/openai_embedding.yaml")
     return path
 
 

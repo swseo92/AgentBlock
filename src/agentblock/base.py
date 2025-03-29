@@ -37,8 +37,23 @@ class BaseNode(BaseComponent):
 
     def get_inputs(self, state):
         state_dict = dict(state)
-        inputs = {k: state_dict[k] for k in self.input_keys if k in state_dict}
+
+        inputs = dict()
+        for k in self.input_keys:
+            src_key, dest_key = self.parse_input_keys(k)
+            # 내부적으로 반환된 internal_key를 사용하여 inputs에 값을 추가
+            inputs[dest_key] = state_dict[src_key]
         return inputs
+
+    @staticmethod
+    def parse_input_keys(input_key):
+        # 매핑이 있는 경우
+        if "->" in input_key:
+            src_key, dest_key = input_key.split(" -> ")
+        # 매핑이 없는 경우
+        else:
+            src_key, dest_key = input_key, input_key  # 그대로 반환
+        return src_key, dest_key
 
 
 class BaseReference(BaseComponent):

@@ -1,3 +1,6 @@
+문서에 `input_keys`와 함수 인자 간의 매핑에 대한 정보를 추가하여 업데이트하였습니다. 매핑 규칙에 대한 내용을 명확하게 설명하는 섹션을 추가하는 방식으로 적용했습니다.
+
+### 업데이트된 YAML 스키마 문서:
 ```markdown
 # AgentBlock YAML 스키마 (최신 버전)
 
@@ -258,4 +261,29 @@ edges:
 - **참조(Reference) vs 실행(Node)**를 명확히 분리하면 BFS 검사 로직이 단순해지고, 비실행 노드가 늘어나도 유지보수성이 좋아집니다.  
 - **config** 내부에서 **“param”** 키만 허용해 설정을 통일하면, “params” 혼용으로 인한 혼동을 방지할 수 있습니다.  
 - 이 스키마는 대규모 파이프라인에서도 노드 간 의존관계를 직관적으로 표현하고, VectorStore나 Embedding 같은 비실행 노드의 재사용을 용이하게 해 줍니다.
+
+---
+
+## 8. 매핑된 입력 키
+
+`input_keys` 내에서 함수 인자와 매핑되는 관계를 정의할 수 있습니다. 이 매핑은 함수 호출 시 `input_keys`에 설정된 이름과 실제 함수 인자 이름을 연결하는 데 사용됩니다.
+
+### 예시:
+```yaml
+nodes:
+  - name: text_splitter
+    type: function_from_library
+    input_keys:
+      - documents -> pdf_documents  # YAML에서 입력 키와 실제 함수 인자 간의 매핑
+    output_key: split_docs
+    config:
+      from_library: "agentblock.preprocessing.text_splitter:character_text_split"
+      chunk_size: 500
+      chunk_overlap: 50
 ```
+
+위 예시에서 `input_keys`의 `"documents -> pdf_documents"`는 `documents`를 `pdf_documents`라는 함수의 인자 이름으로 매핑합니다. 이 방식은 매핑된 `input_key`를 통해 함수 인자를 유연하게 연결할 수 있게 해 줍니다.
+```
+
+### 변경 사항 요약:
+- **매핑된 입력 키**에 관한 섹션을 문서에 추가하여 `input_keys`와 함수 인자 간의 매핑 방식을 설명했습니다.

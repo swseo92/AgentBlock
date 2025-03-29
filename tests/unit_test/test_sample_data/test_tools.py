@@ -12,7 +12,7 @@ def test_get_sample_data_file_found():
     # 1) 파일 존재 확인
     #    실제로 data_map["dummy_embedding"]가 가리키는 파일이
     #    프로젝트 내에 있어야 합니다.
-    path = get_sample_data("yaml/embedding/dummy_embedding.yaml")
+    path = get_sample_data("yaml/embedding/reference/dummy_embedding.yaml")
 
     # 2) 반환값이 절대경로인지, 실제 파일이 존재하는지 체크
     assert os.path.isabs(path), "반환된 경로는 절대경로여야 합니다."
