@@ -1,13 +1,14 @@
 import os
 import importlib
 import importlib.util
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
+from dataclasses import dataclass
 
-from agentblock.function.base import FunctionNode
+from agentblock.function.base import FunctionNode, FunctionResult
 from agentblock.tools.load_config import get_abspath
 
 
-class FunctionFromFileNode(FunctionNode):
+class FunctionFromFileNode(FunctionNode[Dict[str, Any]]):
     """
     기존의 'function_path' 로직을 구현 (구 FunctionNode).
     - parse_config: config에서 function_path, param 가져옴
@@ -20,15 +21,22 @@ class FunctionFromFileNode(FunctionNode):
         name: str,
         input_keys: List[str],
         output_key: Union[str, List[str]],
-        base_dir: str = None,
-        function_path: str = None,
-        param: Dict[str, Any] = None,
+        base_dir: Optional[str] = None,
+        function_path: Optional[str] = None,
+        param: Optional[Dict[str, Any]] = None,
+        validate_inputs: bool = True,
+        validate_outputs: bool = True,
     ):
-        super().__init__(name, input_keys, output_key)
+        super().__init__(
+            name=name,
+            input_keys=input_keys,
+            output_key=output_key,
+            validate_inputs=validate_inputs,
+            validate_outputs=validate_outputs,
+        )
         self.base_dir = base_dir
         self.function_path = function_path
         self.param = param or {}
-
         self._loaded_func = None
 
     @staticmethod
@@ -45,13 +53,15 @@ class FunctionFromFileNode(FunctionNode):
             base_dir=base_dir,
             function_path=config["config"]["function_path"],
             param=config["config"].get("param", {}),
+            validate_inputs=config["config"].get("validate_inputs", True),
+            validate_outputs=config["config"].get("validate_outputs", True),
         )
 
-    def parse_config(self, config: dict = None, base_dir: str = None):
+    def parse_config(self, config: dict = None, base_dir: Optional[str] = None) -> None:
         """우리는 이미 __init__에서 가져왔으므로 여기선 pass."""
         pass
 
-    def import_target_function(self):
+    def import_target_function(self) -> None:
         if not self.function_path:
             raise ValueError("No function_path specified for FunctionFromFileNode")
 
@@ -85,16 +95,17 @@ class FunctionFromFileNode(FunctionNode):
 
         self._loaded_func = func
 
-    def call_target_function(self, inputs: Dict[str, Any]) -> Any:
+    def call_target_function(self, inputs: Dict[str, Any]) -> FunctionResult[Dict[str, Any]]:
         # inputs + self.param => dict
         final_inputs = dict(inputs)
         final_inputs.update(self.param)
 
         result = self._loaded_func(**final_inputs)
-        # if not isinstance(result, dict):
-        #     raise ValueError(
-        #         f"Function '{self.function_path}' must return a dict, got {type(result).__name__}"
-        #     )
-        # # 여기서 raw_result는 dict이지만, 상위클래스에서 _wrap_result()로 또 감쌀 예정
-        # # => 최종구조: {self.output_key: { ... }} 이 될 수도 있음
-        return result
+        
+        # 메타데이터 추가
+        metadata = {
+            "function_path": self.function_path,
+            "param": self.param,
+        }
+        
+        return FunctionResult(value=result, metadata=metadata)

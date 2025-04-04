@@ -53,7 +53,7 @@ def test_faiss_integration_flow(faiss_integration_yaml):
 
     # 2) GraphBuilder로 전체 YAML 빌드
     builder = GraphBuilder(faiss_integration_yaml)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 3) references_map에 있는 vector_store 가져와 "store_docs" 함수가 접근할 수 있도록 set_vector_store
     #    - "my_faiss"는 references 섹션 name
@@ -83,7 +83,7 @@ def test_faiss_integration_flow(faiss_integration_yaml):
     assert os.path.exists(index_path), "FAISS index file not found after BFS"
 
     builder2 = GraphBuilder(faiss_integration_yaml)
-    graph2 = builder2.build_graph()
+    graph2 = builder2.build()
     final_state2 = graph2.invoke(input_state)
 
     assert final_state2 == final_state, "불러온 백터스토어는 동일한 결과를 출력해야합니다."

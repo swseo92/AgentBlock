@@ -95,7 +95,7 @@ edges:
 from agentblock.graph_builder import GraphBuilder
 
 builder = GraphBuilder("sample_retriever.yaml")
-graph = builder.build_graph()
+graph = builder.build()
 result = graph.invoke({"query": "Hello world"})
 print(result["retrieved_docs"])
 ```

@@ -13,7 +13,7 @@ def test_single_value():
     """
     Test the single_value_func with scale=2 => result['value'] = x*2
     """
-    graph = GraphBuilder(yaml_path_test_single_value).build_graph()
+    graph = GraphBuilder(yaml_path_test_single_value).build()
 
     result = graph.invoke({"x": 10})
     # single_value_func => {"value": 10*2=20}
@@ -25,7 +25,7 @@ def test_multiple_values():
     multiple_values_func => {sum, diff, product}
     """
     # BUGFIX: changed "f{base_path}" → f"{base_path}"
-    graph = GraphBuilder(yaml_path_test_multiple_values).build_graph()
+    graph = GraphBuilder(yaml_path_test_multiple_values).build()
 
     result = graph.invoke({"a": 5, "b": 2})
     # multiple_values_func => {"sum":7, "diff":3, "product":10}

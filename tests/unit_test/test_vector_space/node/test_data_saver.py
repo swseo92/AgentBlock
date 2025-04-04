@@ -74,9 +74,9 @@ def test_data_saver_node_indexing():
     # "documents" 키에 문자열 리스트를 입력으로 전달 (자동으로 Document로 변환됨)
     result = data_saver_node.call_target_function(input_data)
 
-    # 저장 결과 반환값 확인
-    assert result["status"] == "saved"
-    assert result["num_docs"] == 2
+    # 저장 결과 반환값 확인 (FunctionResult.value에 접근)
+    assert result.value["status"] == "saved"
+    assert result.value["num_docs"] == 2
 
     # 추가로, 저장된 문서가 실제 벡터 스토어에 반영되었는지 similarity_search로 검증합니다.
     vs = references_map["my_faiss"]
@@ -103,6 +103,8 @@ def test_data_saver_node_invalid_input():
 @pytest.fixture
 def setup_data_saver_node():
     mock_vector_store = MagicMock(spec=VectorStore)
+    mock_vector_store.save = MagicMock()
+    mock_vector_store.path_save = "mock_path"
     node = DataSaverNode(
         name="test_node",
         reference=mock_vector_store,
@@ -119,8 +121,8 @@ def test_data_saver_node_with_valid_documents(setup_data_saver_node):
 
     result = node.call_target_function(inputs)
 
-    assert result["status"] == "saved"
-    assert result["num_docs"] == 2
+    assert result.value["status"] == "saved"
+    assert result.value["num_docs"] == 2
     mock_vector_store.add_documents.assert_called_once_with(documents)
 
 

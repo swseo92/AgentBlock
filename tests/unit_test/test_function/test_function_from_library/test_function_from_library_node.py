@@ -48,7 +48,7 @@ edges:
 
     # 3) GraphBuilder로 빌드
     builder = GraphBuilder(str(yaml_file))
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 4) 그래프 실행
     state = {"a": 2, "b": 3, "x": 5, "y": 10}
@@ -87,7 +87,7 @@ edges:
     builder = GraphBuilder(str(yaml_file))
 
     with pytest.raises(ModuleNotFoundError):
-        _ = builder.build_graph()
+        _ = builder.build()
 
 
 def test_multiple_output_with_params(tmp_path):
@@ -120,7 +120,7 @@ edges:
     from agentblock.graph_builder import GraphBuilder
 
     builder = GraphBuilder(str(yaml_file))
-    graph = builder.build_graph()
+    graph = builder.build()
 
     state = {"a": 4, "b": 2, "x": 3, "y": 1}
     # multi_ops(4,2,x=3,y=1):
@@ -165,7 +165,7 @@ edges:
 
     builder = GraphBuilder(str(yaml_file))
 
-    graph = builder.build_graph()
+    graph = builder.build()
     state = {"a": 4, "b": 3}
 
     with pytest.raises(ValueError) as excinfo:
@@ -208,7 +208,7 @@ edges:
     from agentblock.graph_builder import GraphBuilder
 
     builder = GraphBuilder(str(yaml_file))
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # state 내에서 a=5, x=10으로 설정
     # input_keys에서 x=10을 가져오지만, params=["x"]를 또 가져오면?
@@ -249,7 +249,7 @@ edges:
     from agentblock.graph_builder import GraphBuilder
 
     builder = GraphBuilder(str(yaml_file))
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # b=0 -> ZeroDivisionError 발생
     state = {"a": 5, "b": 0}
@@ -287,7 +287,7 @@ edges:
 
     from agentblock.graph_builder import GraphBuilder
 
-    graph = GraphBuilder(str(yaml_file)).build_graph()
+    graph = GraphBuilder(str(yaml_file)).build()
 
     result_state = graph.invoke({"a": 1, "b": 2})
     # expect => {"result": None}
@@ -324,7 +324,7 @@ edges:
 
     from agentblock.graph_builder import GraphBuilder
 
-    graph = GraphBuilder(str(yaml_file)).build_graph()
+    graph = GraphBuilder(str(yaml_file)).build()
 
     # state에 x,y 없음 => default=0
     result_state = graph.invoke({"a": 2, "b": 3})

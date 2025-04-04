@@ -49,10 +49,12 @@ class BaseNode(BaseComponent):
     def parse_input_keys(input_key):
         # 매핑이 있는 경우
         if "->" in input_key:
-            src_key, dest_key = input_key.split(" -> ")
+            src_key, dest_key = input_key.split("->")
+            src_key = src_key.strip()
+            dest_key = dest_key.strip()
         # 매핑이 없는 경우
         else:
-            src_key, dest_key = input_key, input_key  # 그대로 반환
+            src_key, dest_key = input_key.strip(), input_key.strip()  # 그대로 반환
         return src_key, dest_key
 
 

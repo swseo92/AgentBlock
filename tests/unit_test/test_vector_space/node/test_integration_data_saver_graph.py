@@ -14,7 +14,7 @@ def test_graph_builder_integration(tmp_path):
 
     # GraphBuilder를 통해 그래프를 빌드합니다.
     builder = GraphBuilder(path_yaml)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 입력 state 준비: "documents" 키에 단일 문서 입력
     state = {"documents": [Document(page_content="doc1")]}

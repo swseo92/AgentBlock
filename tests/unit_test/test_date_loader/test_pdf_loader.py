@@ -9,7 +9,7 @@ path_pdf = get_sample_data("pdf/공매도 재개의 증시 영향.pdf")
 def test_pdf_loader():
     # 3) 그래프 빌드
     builder = GraphBuilder(path_yaml)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 4) 실행
     init_state = {"file_path": path_pdf}

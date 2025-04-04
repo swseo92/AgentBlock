@@ -33,7 +33,7 @@ def test_graph_from_recursive_yaml():
 
     # 2. GraphBuilder 생성 및 컴파일
     builder = GraphBuilder(path)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 3. 입력 데이터 (State)
     test_input = {"query": "안녕하세요"}
@@ -52,13 +52,13 @@ def test_graph_from_recursive_yaml():
 
 def test_graph_builds_successfully():
     builder = GraphBuilder(path_main_graph)
-    graph = builder.build_graph()
+    graph = builder.build()
     assert graph is not None
 
 
 def test_graph_runs_with_valid_input():
     builder = GraphBuilder(path_main_graph)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     result = graph.invoke({"query": "안녕하세요"})
     assert "final_answer" in result
@@ -68,7 +68,7 @@ def test_graph_runs_with_valid_input():
 
 def test_recursive_state_keys():
     builder = GraphBuilder(path_main_graph)
-    builder.build_graph()
+    builder.build()
 
     expected_keys = {"query", "law_response", "law_summary", "final_answer"}
     assert expected_keys.issubset(builder.used_keys)
@@ -76,7 +76,7 @@ def test_recursive_state_keys():
 
 def test_output_key_integrity():
     builder = GraphBuilder(path_main_graph)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     result = graph.invoke({"query": "안녕하세요"})
     assert "law_response" in result

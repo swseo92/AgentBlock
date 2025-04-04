@@ -1,5 +1,7 @@
 import os
 import yaml
+import tempfile
+
 from typing import TypedDict, Type, Set, Any, Dict
 
 from langgraph.graph import StateGraph, START, END
@@ -14,6 +16,8 @@ from agentblock.vector_store.data_saver_node import DataSaverNode
 from agentblock.embedding.embedding_reference import EmbeddingReference
 from agentblock.vector_store.vector_store_reference import VectorStoreReference
 from agentblock.schema.tools import validate_yaml
+from agentblock.tools.load_config import load_config
+
 
 # 실행 노드 타입 매핑
 NODE_TYPE_MAP = {
@@ -37,8 +41,7 @@ class GraphBuilder:
         self.validate_yaml()
 
         self.yaml_dir = os.path.dirname(self.yaml_path)
-        with open(self.yaml_path, "r", encoding="utf-8") as f:
-            self.config = yaml.safe_load(f)
+        self.config = load_config(self.yaml_path)
 
         # 스키마에서 sections 파싱
         self.references_defs = self.config.get("references", [])
@@ -49,6 +52,25 @@ class GraphBuilder:
         self.node_map = {}  # { node_name: node_fn or sub_graph }
         self.references_map: Dict[str, Any] = {}  # { reference_name: built_object }
         self.used_keys: Set[Any] = set()
+
+    @staticmethod
+    def from_yaml_data(yaml_data):
+        """
+        주어진 yaml_data를 임시 YAML 파일로 저장하고, 해당 파일 경로를 사용하여 GraphBuilder 객체를 생성합니다.
+
+        Args:
+            yaml_data (dict): YAML 형식의 데이터 (예: dict 형태로 전달)
+
+        Returns:
+            GraphBuilder: 생성된 GraphBuilder 객체
+        """
+        # 임시 파일을 생성하여 yaml_data를 저장
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.yaml') as temp_file:
+            temp_file_path = temp_file.name
+            yaml.dump(yaml_data, temp_file, default_flow_style=False, allow_unicode=True)
+
+        # 생성된 임시 파일 경로를 사용하여 GraphBuilder 객체 반환
+        return GraphBuilder(temp_file_path)
 
     def validate_yaml(self):
         validate_yaml(self.yaml_path)
@@ -71,7 +93,7 @@ class GraphBuilder:
                 sub_file_path = os.path.join(self.yaml_dir, from_file)
                 sub_builder = GraphBuilder(sub_file_path)
                 # 재귀 빌드
-                sub_graph = sub_builder.build_graph()
+                sub_graph = sub_builder.build()
                 self.node_map[node_cfg["name"]] = sub_graph
 
                 # 서브그래프의 used_keys를 상위 그래프에도 반영
@@ -99,7 +121,7 @@ class GraphBuilder:
                     for k in out_key:
                         self.used_keys.add(k)
 
-    def build_graph(self):
+    def build(self):
         """
         1) references 빌드 -> self.references_map
         2) nodes 빌드 -> self.node_map
@@ -147,7 +169,7 @@ class GraphBuilder:
         """
         state_dict = {}
         for k in self.used_keys:
-            state_dict[k] = Any
+            state_dict[k] = Any  # ToDo: node 타입별로 형태를 정의할 것, input과 output 포맷에 대한 강력한 규약
         return TypedDict("State", state_dict, total=False)
 
     def load_references_topo(self):

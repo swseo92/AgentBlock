@@ -1,19 +1,19 @@
 references:
-  - name: dummy_emb
+  - name: my_embedding
     type: embedding
     config:
-      provider: dummy
+      provider: openai
       param:
-        dimension: 5
+        model: text-embedding-ada-002
 
-  - name: my_faiss
+  - name: my_vector_store
     type: vector_store
     config:
       provider: faiss
       param:
-        path: test.faiss
+        path: faiss_index.bin
       reference:
-        embedding: dummy_emb
+        embedding: my_embedding
 
 nodes:
   - name: pdf_loader_node
@@ -41,7 +41,7 @@ nodes:
     output_key: result
     config:
       reference:
-        vector_store: my_faiss
+        vector_store: my_vector_store
 
 edges:
   - from: START

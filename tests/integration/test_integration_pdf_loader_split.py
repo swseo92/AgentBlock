@@ -23,7 +23,7 @@ def test_pdf_loader_with_character_text_split():
     #    (상대 경로, 절대 경로 등 프로젝트 환경에 맞춰 조정)
     yaml_path = os.path.abspath(path_yaml)
     builder = GraphBuilder(yaml_path)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 2) PDF 파일 경로를 포함한 초기 state
     state = {"file_path": path_pdf}

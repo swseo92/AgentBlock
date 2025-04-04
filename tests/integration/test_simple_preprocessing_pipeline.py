@@ -21,7 +21,7 @@ def test_pdf_loader_with_character_text_split():
 
     # 1) GraphBuilder로 test_pdf_split.yaml 그래프 구성
     builder = GraphBuilder(path_yaml)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     # 2) PDF 파일 경로를 포함한 초기 state
     state = {"file_path": path_pdf}
@@ -47,3 +47,4 @@ def test_pdf_loader_with_character_text_split():
     print("Sample chunk:", first_doc.page_content[:100], "...")
 
     assert output_state["result"]["status"] == "saved"
+    assert os.path.exists(output_state["result"]["path_save"])

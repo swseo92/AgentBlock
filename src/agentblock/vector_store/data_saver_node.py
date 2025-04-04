@@ -2,6 +2,7 @@ from typing import Dict, Any
 from agentblock.function.base import FunctionNode
 from langchain.docstore.document import Document
 from langchain_core.vectorstores import VectorStore
+from agentblock.function.base import FunctionResult
 
 
 class DataSaverNode(FunctionNode):
@@ -89,8 +90,10 @@ class DataSaverNode(FunctionNode):
 
         if isinstance(self.reference, VectorStore):
             self.reference.add_documents(docs)
+            self.reference.save()
             # 저장 후, 상태와 저장된 문서 수를 반환합니다.
-            return {"status": "saved", "num_docs": len(docs)}
+            result = {"status": "saved", "num_docs": len(docs), "path_save": self.reference.path_save}
+            return FunctionResult(value=result)
         else:
             raise ValueError(
                 f"Reference must be an instance of VectorStore, got {type(self.reference)}"

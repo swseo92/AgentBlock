@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 import importlib
 import importlib.util
 
-from agentblock.function.base import FunctionNode
+from agentblock.function.base import FunctionNode, FunctionResult
 
 
-class FunctionFromLibraryNode(FunctionNode):
+class FunctionFromLibraryNode(FunctionNode[Any]):
     """
     'from_library': "module:function" 형식
     raw_result를 dict가 아닐 수도 있으니, 상위 _wrap_result() 로직으로 감쌀 것.
@@ -16,11 +16,19 @@ class FunctionFromLibraryNode(FunctionNode):
         name: str,
         input_keys: List[str],
         output_key: Union[str, List[str]],
-        base_dir: str = None,
-        from_library: str = None,
-        param: List[str] = None,
+        base_dir: Optional[str] = None,
+        from_library: Optional[str] = None,
+        param: Optional[List[str]] = None,
+        validate_inputs: bool = True,
+        validate_outputs: bool = True,
     ):
-        super().__init__(name, input_keys, output_key)
+        super().__init__(
+            name=name,
+            input_keys=input_keys,
+            output_key=output_key,
+            validate_inputs=validate_inputs,
+            validate_outputs=validate_outputs,
+        )
         self.base_dir = base_dir
         self.from_library = from_library
         self.param = param or []
@@ -44,13 +52,15 @@ class FunctionFromLibraryNode(FunctionNode):
             base_dir=base_dir,
             from_library=from_lib,
             param=config["config"].get("param", []),
+            validate_inputs=config["config"].get("validate_inputs", True),
+            validate_outputs=config["config"].get("validate_outputs", True),
         )
 
-    def parse_config(self, config: dict = None, base_dir: str = None):
+    def parse_config(self, config: dict = None, base_dir: Optional[str] = None) -> None:
         """이미 __init__에서 처리했으므로 pass."""
         pass
 
-    def import_target_function(self):
+    def import_target_function(self) -> None:
         if not self.from_library or ":" not in self.from_library:
             raise ValueError(f"Invalid from_library: {self.from_library}")
 
@@ -64,7 +74,7 @@ class FunctionFromLibraryNode(FunctionNode):
 
         self._func = target_func
 
-    def call_target_function(self, inputs: Dict[str, Any]) -> Any:
+    def call_target_function(self, inputs: Dict[str, Any]) -> FunctionResult[Any]:
         # input_keys + param(list[str]) => call _func
         extra_args = {}
         for p in self.param:
@@ -77,6 +87,11 @@ class FunctionFromLibraryNode(FunctionNode):
 
         # now call
         raw_result = self._func(**inputs, **extra_args)
-        # raw_result could be anything (int/str/list/dict)
-
-        return raw_result
+        
+        # 메타데이터 추가
+        metadata = {
+            "from_library": self.from_library,
+            "param": self.param,
+        }
+        
+        return FunctionResult(value=raw_result, metadata=metadata)

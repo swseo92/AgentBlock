@@ -14,7 +14,7 @@ def test_multi_key_missing():
     partial_keys => {sum,diff}, missing 'product' => mismatch => error
     """
     builder = GraphBuilder(yaml_path_test_multi_key_missing)
-    graph = builder.build_graph()
+    graph = builder.build()
 
     with pytest.raises(Exception):
         graph.invoke({"a": 5, "b": 2})

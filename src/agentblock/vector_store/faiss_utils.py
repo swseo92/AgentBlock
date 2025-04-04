@@ -34,7 +34,12 @@ def create_faiss_vector_store(embedding_model: Embeddings, path: str = None, **k
             **kwargs,
         )
 
-    vector_store.save = lambda: vector_store.save_local(path)
-    vector_store._path_save = path
+    def save():
+        vector_store.save_local(path)
+
+    vector_store.save = save
+
+    vector_store.save = save
+    vector_store.path_save = path
 
     return vector_store
